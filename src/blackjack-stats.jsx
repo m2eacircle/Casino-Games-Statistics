@@ -822,6 +822,8 @@ const BlackjackStats = () => {
     const resetPlayers = players.map(player => ({
       ...player,
       hand: [],
+      splitHand: null,      // Reset split hand
+      playingSplit: false,  // Reset split flag
       bet: 0
     }));
     
