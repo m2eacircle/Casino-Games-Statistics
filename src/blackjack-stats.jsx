@@ -355,6 +355,225 @@ const TermsModal = ({ onClose, alreadyAccepted }) => {
   );
 };
 
+// Replay Game Log Modal
+const ReplayModal = ({ onClose, gameHistory }) => {
+  if (!gameHistory) return null;
+  
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.85)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '20px',
+      overflow: 'auto'
+    }} onClick={onClose}>
+      <div style={{
+        background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+        borderRadius: '20px',
+        maxWidth: '900px',
+        width: '100%',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+        color: 'white'
+      }} onClick={(e) => e.stopPropagation()}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '30px 30px 20px 30px',
+          borderBottom: '2px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <div>
+            <h2 style={{ margin: '0 0 5px 0', fontSize: '2rem' }}>📋 Game Log Replay</h2>
+            <p style={{ margin: 0, opacity: 0.7, fontSize: '0.9rem' }}>{gameHistory.timestamp}</p>
+          </div>
+          <button onClick={onClose} style={{
+            background: 'none',
+            border: 'none',
+            fontSize: '2.5rem',
+            color: 'white',
+            cursor: 'pointer',
+            lineHeight: 1,
+            padding: 0,
+            width: '40px',
+            height: '40px',
+            opacity: 0.7
+          }}>×</button>
+        </div>
+        
+        <div style={{ padding: '30px' }}>
+          {/* Dealer Section */}
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: '15px',
+            padding: '20px',
+            marginBottom: '25px',
+            border: '2px solid rgba(251, 191, 36, 0.3)'
+          }}>
+            <h3 style={{ margin: '0 0 15px 0', color: '#fbbf24', fontSize: '1.3rem' }}>🎰 Dealer</h3>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
+              {gameHistory.dealer.hand.map((card, idx) => (
+                <div key={idx} style={{
+                  background: 'white',
+                  color: card.suit === '♥' || card.suit === '♦' ? '#ef4444' : '#1f2937',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  minWidth: '50px',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                }}>
+                  <div>{card.suit}</div>
+                  <div>{card.display}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: '1.1rem' }}>
+              <strong>Total:</strong> {gameHistory.dealer.value}
+              {gameHistory.dealer.busted && <span style={{ color: '#ef4444', marginLeft: '10px', fontWeight: 'bold' }}>BUST!</span>}
+            </div>
+          </div>
+          
+          {/* Players Section */}
+          <h3 style={{ margin: '0 0 15px 0', color: '#fbbf24', fontSize: '1.3rem' }}>👥 Players</h3>
+          {gameHistory.players.map((player, idx) => (
+            <div key={idx} style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '15px',
+              padding: '20px',
+              marginBottom: '15px',
+              border: player.result === 'WIN' ? '2px solid #10b981' : 
+                      player.result === 'LOSE' ? '2px solid #ef4444' : 
+                      '2px solid #fbbf24'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 5px 0', fontSize: '1.2rem' }}>
+                    {player.type === 'ai' ? '🤖' : '👤'} {player.name}
+                  </h4>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.8' }}>
+                    Bet: <strong>{player.bet} coins</strong>
+                  </div>
+                </div>
+                <div style={{
+                  padding: '8px 20px',
+                  borderRadius: '20px',
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem',
+                  background: player.result === 'WIN' ? '#10b981' : 
+                              player.result === 'LOSE' ? '#ef4444' : '#fbbf24',
+                  color: 'white'
+                }}>
+                  {player.result === 'WIN' ? '🎉 WIN' : 
+                   player.result === 'LOSE' ? '💔 LOSE' : '🤝 PUSH'}
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '8px' }}>Hand:</div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {player.hand.map((card, cardIdx) => (
+                    <div key={cardIdx} style={{
+                      background: 'white',
+                      color: card.suit === '♥' || card.suit === '♦' ? '#ef4444' : '#1f2937',
+                      padding: '12px',
+                      borderRadius: '6px',
+                      minWidth: '40px',
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}>
+                      <div style={{ fontSize: '0.8rem' }}>{card.suit}</div>
+                      <div>{card.display}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: '8px', fontSize: '1rem' }}>
+                  <strong>Total:</strong> {player.handValue}
+                  {player.busted && <span style={{ color: '#ef4444', marginLeft: '10px', fontWeight: 'bold' }}>BUST!</span>}
+                </div>
+              </div>
+              
+              {player.splitHand && (
+                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                  <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '8px' }}>Split Hand:</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {player.splitHand.map((card, cardIdx) => (
+                      <div key={cardIdx} style={{
+                        background: 'white',
+                        color: card.suit === '♥' || card.suit === '♦' ? '#ef4444' : '#1f2937',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        minWidth: '40px',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '1rem',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}>
+                        <div style={{ fontSize: '0.8rem' }}>{card.suit}</div>
+                        <div>{card.display}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: '8px', fontSize: '1rem' }}>
+                    <strong>Total:</strong> {player.splitHandValue}
+                  </div>
+                </div>
+              )}
+              
+              <div style={{ 
+                marginTop: '15px', 
+                paddingTop: '15px', 
+                borderTop: '1px solid rgba(255,255,255,0.2)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '0.95rem'
+              }}>
+                <div>
+                  Coins Before: <strong>{player.initialCoins}</strong>
+                </div>
+                <div style={{ 
+                  color: player.finalCoins > player.initialCoins ? '#10b981' : 
+                         player.finalCoins < player.initialCoins ? '#ef4444' : '#fbbf24',
+                  fontWeight: 'bold'
+                }}>
+                  Coins After: <strong>{player.finalCoins}</strong>
+                  {player.finalCoins > player.initialCoins && <span> (+{player.finalCoins - player.initialCoins})</span>}
+                  {player.finalCoins < player.initialCoins && <span> ({player.finalCoins - player.initialCoins})</span>}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div style={{ padding: '20px 30px 30px 30px', textAlign: 'center', borderTop: '2px solid rgba(255,255,255,0.2)' }}>
+          <button onClick={onClose} style={{
+            padding: '15px 40px',
+            background: '#6366f1',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            fontSize: '1.1rem',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontWeight: 'bold'
+          }}>Close Replay</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const BlackjackStats = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -373,6 +592,8 @@ const BlackjackStats = () => {
   const [showStats, setShowStats] = useState(false);
   const [editingPlayers, setEditingPlayers] = useState(false);
   const [showShuffleAnimation, setShowShuffleAnimation] = useState(false);
+  const [gameHistory, setGameHistory] = useState(null); // Store last game for replay
+  const [showReplay, setShowReplay] = useState(false); // Show replay modal
   
   // Refs to always have latest state in callbacks
   const playersRef = useRef(players);
@@ -813,6 +1034,32 @@ const BlackjackStats = () => {
     
     setPlayers(updatedPlayers);
     setShoe(currentShoe);
+    
+    // Save game history for replay
+    const history = {
+      players: updatedPlayers.map(p => ({
+        name: p.name,
+        type: p.type,
+        initialCoins: p.coins - (p.bet * 2), // Coins before this round
+        bet: p.bet,
+        hand: p.hand,
+        splitHand: p.splitHand,
+        handValue: calculateHandValue(p.hand),
+        splitHandValue: p.splitHand ? calculateHandValue(p.splitHand) : null,
+        busted: calculateHandValue(p.hand) > 21,
+        finalCoins: p.coins,
+        result: p.coins > (p.coins - (p.bet * 2)) ? 'WIN' : 
+                p.coins === (p.coins - (p.bet * 2)) ? 'PUSH' : 'LOSE'
+      })),
+      dealer: {
+        hand: dealerHand,
+        value: dealerValue,
+        busted: dealerBusted
+      },
+      timestamp: new Date().toLocaleString()
+    };
+    
+    setGameHistory(history);
     setGamePhase('result');
   };
   
@@ -834,6 +1081,41 @@ const BlackjackStats = () => {
     setPlayers(resetPlayers);
     setDealer({ hand: [], showAll: false });
     setGamePhase('betting');
+  };
+  
+  const nextRoundAndBet = () => {
+    if (shoe.length <= cutCardPosition) {
+      // Reshuffle
+      const newShoe = initializeShoe(numDecks);
+      setShoe(newShoe);
+    }
+    
+    // Reset players and place bets immediately
+    const resetPlayers = players.map(player => {
+      if (!player.locked && player.coins >= 5) {
+        return {
+          ...player,
+          hand: [],
+          splitHand: null,
+          playingSplit: false,
+          bet: 5,
+          coins: player.coins - 5
+        };
+      }
+      return {
+        ...player,
+        hand: [],
+        splitHand: null,
+        playingSplit: false,
+        bet: 0
+      };
+    });
+    
+    setPlayers(resetPlayers);
+    setDealer({ hand: [], showAll: false });
+    
+    // Deal cards immediately
+    dealInitialCards(resetPlayers);
   };
   
   const togglePlayerType = (index) => {
@@ -1477,6 +1759,7 @@ const BlackjackStats = () => {
   return (
     <>
       {showTermsModal && <TermsModal onClose={closeTermsModal} alreadyAccepted={true} />}
+      {showReplay && <ReplayModal onClose={() => setShowReplay(false)} gameHistory={gameHistory} />}
       
       {/* Shuffle Animation Overlay */}
       {showShuffleAnimation && (
@@ -1750,9 +2033,22 @@ const BlackjackStats = () => {
           )}
           
           {gamePhase === 'result' && (
-            <button className="action-btn primary" onClick={nextRound}>
-              Next Round
-            </button>
+            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+              <button 
+                className="action-btn primary" 
+                onClick={nextRoundAndBet}
+                style={{ flex: '1', minWidth: '250px' }}
+              >
+                Next Round & Place Bets (5 coins)
+              </button>
+              <button 
+                className="action-btn" 
+                onClick={() => setShowReplay(true)}
+                style={{ flex: '1', minWidth: '200px', background: '#6366f1' }}
+              >
+                📋 Replay Game Log
+              </button>
+            </div>
           )}
         </div>
         
