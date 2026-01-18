@@ -306,7 +306,9 @@ const BlackjackStats = () => {
     let currentShoe = [...shoe];
     const updatedPlayers = currentPlayers.map(player => ({
       ...player,
-      hand: player.locked ? [] : [currentShoe.pop(), currentShoe.pop()]
+      hand: player.locked ? [] : [currentShoe.pop(), currentShoe.pop()],
+      splitHand: null,
+      playingSplit: false
     }));
     
     const dealerHand = [currentShoe.pop(), currentShoe.pop()];
@@ -322,6 +324,11 @@ const BlackjackStats = () => {
       setTimeout(() => {
         alert('Cut card reached! Reshuffling after this hand.');
       }, 1000);
+    }
+    
+    // If first player is AI, start AI play
+    if (updatedPlayers[0] && updatedPlayers[0].type === 'ai' && !updatedPlayers[0].locked) {
+      setTimeout(() => playAITurn(updatedPlayers, currentShoe, 0), 1000);
     }
   };
   
@@ -373,12 +380,65 @@ const BlackjackStats = () => {
     }
   };
   
+  // AI decision making based on basic blackjack strategy
+  const getAIDecision = (hand, dealerUpCard) => {
+    const handValue = calculateHandValue(hand);
+    const dealerValue = dealerUpCard.value;
+    const isPair = hand.length === 2 && hand[0].value === hand[1].value;
+    
+    // Pair splitting strategy
+    if (isPair) {
+      const pairValue = hand[0].value;
+      if (pairValue === 11 || pairValue === 8) return 'split'; // Always split Aces and 8s
+      if (pairValue === 10) return 'stand'; // Never split 10s
+      if (pairValue === 9 && dealerValue <= 9 && dealerValue !== 7) return 'split';
+      if (pairValue === 7 && dealerValue <= 7) return 'split';
+      if (pairValue === 6 && dealerValue <= 6) return 'split';
+      if (pairValue === 4 && (dealerValue === 5 || dealerValue === 6)) return 'split';
+      if (pairValue === 3 || pairValue === 2) {
+        if (dealerValue <= 7) return 'split';
+      }
+    }
+    
+    // Soft hands (with Ace counted as 11)
+    const hasAce = hand.some(card => card.value === 11);
+    if (hasAce && handValue <= 21) {
+      if (handValue >= 19) return 'stand';
+      if (handValue === 18) {
+        if (dealerValue <= 8) return 'stand';
+        return 'hit';
+      }
+      return 'hit'; // Soft 17 or less, always hit
+    }
+    
+    // Hard hands
+    if (handValue >= 17) return 'stand';
+    if (handValue >= 13 && handValue <= 16) {
+      if (dealerValue <= 6) return 'stand';
+      return 'hit';
+    }
+    if (handValue === 12) {
+      if (dealerValue >= 4 && dealerValue <= 6) return 'stand';
+      return 'hit';
+    }
+    if (handValue === 11) {
+      return hand.length === 2 ? 'double' : 'hit';
+    }
+    if (handValue === 10) {
+      return hand.length === 2 && dealerValue <= 9 ? 'double' : 'hit';
+    }
+    if (handValue === 9) {
+      return hand.length === 2 && dealerValue >= 3 && dealerValue <= 6 ? 'double' : 'hit';
+    }
+    
+    return 'hit'; // Default: hit on anything 8 or less
+  };
+  
   const moveToNextPlayer = (updatedPlayers, currentShoe) => {
     let nextIndex = currentPlayerIndex + 1;
     
-    // Skip AI players and locked players for now (in full version, AI would play)
-    while (nextIndex < updatedPlayers.length && 
-           (updatedPlayers[nextIndex].type === 'ai' || updatedPlayers[nextIndex].locked)) {
+    // Skip locked players only
+    while (nextIndex < updatedPlayers.length && updatedPlayers[nextIndex].locked) {
       nextIndex++;
     }
     
@@ -389,6 +449,83 @@ const BlackjackStats = () => {
       setCurrentPlayerIndex(nextIndex);
       setPlayers(updatedPlayers);
       setShoe(currentShoe);
+      
+      // If next player is AI, play automatically
+      if (updatedPlayers[nextIndex].type === 'ai') {
+        setTimeout(() => playAITurn(updatedPlayers, currentShoe, nextIndex), 800);
+      }
+    }
+  };
+  
+  const playAITurn = (currentPlayers, currentShoe, aiIndex) => {
+    const aiPlayer = currentPlayers[aiIndex];
+    if (!aiPlayer || aiPlayer.locked) {
+      moveToNextPlayer(currentPlayers, currentShoe);
+      return;
+    }
+    
+    const dealerUpCard = dealer.hand[0];
+    const decision = getAIDecision(aiPlayer.hand, dealerUpCard);
+    
+    let updatedPlayers = [...currentPlayers];
+    
+    if (decision === 'hit') {
+      updatedPlayers[aiIndex].hand.push(currentShoe.pop());
+      const handValue = calculateHandValue(updatedPlayers[aiIndex].hand);
+      
+      setPlayers(updatedPlayers);
+      setShoe(currentShoe);
+      
+      if (handValue > 21) {
+        // AI busted
+        setTimeout(() => moveToNextPlayer(updatedPlayers, currentShoe), 600);
+      } else {
+        // AI continues playing
+        setTimeout(() => playAITurn(updatedPlayers, currentShoe, aiIndex), 800);
+      }
+    } else if (decision === 'stand') {
+      setPlayers(updatedPlayers);
+      setShoe(currentShoe);
+      setTimeout(() => moveToNextPlayer(updatedPlayers, currentShoe), 600);
+    } else if (decision === 'double') {
+      if (aiPlayer.coins >= 5 && aiPlayer.hand.length === 2) {
+        updatedPlayers[aiIndex].coins -= 5;
+        updatedPlayers[aiIndex].bet += 5;
+        updatedPlayers[aiIndex].hand.push(currentShoe.pop());
+        setPlayers(updatedPlayers);
+        setShoe(currentShoe);
+        setTimeout(() => moveToNextPlayer(updatedPlayers, currentShoe), 600);
+      } else {
+        // Can't double, hit instead
+        updatedPlayers[aiIndex].hand.push(currentShoe.pop());
+        setPlayers(updatedPlayers);
+        setShoe(currentShoe);
+        setTimeout(() => playAITurn(updatedPlayers, currentShoe, aiIndex), 800);
+      }
+    } else if (decision === 'split') {
+      if (aiPlayer.coins >= 5 && aiPlayer.hand.length === 2 && 
+          aiPlayer.hand[0].value === aiPlayer.hand[1].value) {
+        updatedPlayers[aiIndex].coins -= 5;
+        const card1 = aiPlayer.hand[0];
+        const card2 = aiPlayer.hand[1];
+        updatedPlayers[aiIndex].hand = [card1, currentShoe.pop()];
+        updatedPlayers[aiIndex].splitHand = [card2, currentShoe.pop()];
+        updatedPlayers[aiIndex].playingSplit = false;
+        setPlayers(updatedPlayers);
+        setShoe(currentShoe);
+        setTimeout(() => playAITurn(updatedPlayers, currentShoe, aiIndex), 800);
+      } else {
+        // Can't split, use alternative strategy
+        const altDecision = getAIDecision(aiPlayer.hand, dealerUpCard);
+        if (altDecision === 'hit') {
+          updatedPlayers[aiIndex].hand.push(currentShoe.pop());
+          setPlayers(updatedPlayers);
+          setShoe(currentShoe);
+          setTimeout(() => playAITurn(updatedPlayers, currentShoe, aiIndex), 800);
+        } else {
+          setTimeout(() => moveToNextPlayer(updatedPlayers, currentShoe), 600);
+        }
+      }
     }
   };
   
@@ -1172,6 +1309,35 @@ const BlackjackStats = () => {
                 </div>
               ) : (
                 <>
+                  {/* Show AI decision and statistics when it's AI's turn */}
+                  {player.type === 'ai' && idx === currentPlayerIndex && gamePhase === 'playing' && player.hand.length > 0 && dealer.hand.length > 0 && (
+                    <div className="ai-thinking">
+                      <div className="ai-label">🤖 AI Thinking...</div>
+                      <div className="ai-stats">
+                        <div className="stat-item">
+                          <span className="stat-label">HIT:</span>
+                          <span className="stat-value">{calculateWinProbability(player.hand, dealer.hand[0], 'hit', null)}%</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-label">STAND:</span>
+                          <span className="stat-value">{calculateWinProbability(player.hand, dealer.hand[0], 'stand', null)}%</span>
+                        </div>
+                        {player.hand.length === 2 && player.coins >= 5 && (
+                          <div className="stat-item">
+                            <span className="stat-label">DOUBLE:</span>
+                            <span className="stat-value">{calculateWinProbability(player.hand, dealer.hand[0], 'double', null)}%</span>
+                          </div>
+                        )}
+                        {player.hand.length === 2 && player.hand[0].value === player.hand[1].value && player.coins >= 5 && (
+                          <div className="stat-item">
+                            <span className="stat-label">SPLIT:</span>
+                            <span className="stat-value">{calculateWinProbability(player.hand, dealer.hand[0], 'split', null)}%</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="hand-display">
                     {player.hand.map((card, cardIdx) => (
                       <div key={cardIdx} className="card">
@@ -1470,6 +1636,49 @@ const BlackjackStats = () => {
           text-align: center;
           padding: 20px;
           font-size: 1.1rem;
+        }
+        
+        .ai-thinking {
+          background: rgba(251, 191, 36, 0.2);
+          border-radius: 10px;
+          padding: 15px;
+          margin-bottom: 15px;
+          border: 2px solid rgba(251, 191, 36, 0.5);
+        }
+        
+        .ai-label {
+          color: #fbbf24;
+          font-weight: bold;
+          font-size: 1rem;
+          margin-bottom: 10px;
+          text-align: center;
+        }
+        
+        .ai-stats {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        
+        .stat-item {
+          background: rgba(255, 255, 255, 0.1);
+          padding: 8px;
+          border-radius: 6px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .stat-label {
+          color: white;
+          font-size: 0.85rem;
+          font-weight: bold;
+        }
+        
+        .stat-value {
+          color: #10b981;
+          font-size: 0.9rem;
+          font-weight: bold;
         }
         
         .actions-section {
