@@ -372,6 +372,7 @@ const BlackjackStats = () => {
   const [gamePhase, setGamePhase] = useState('setup'); // 'setup', 'betting', 'playing', 'dealer', 'result'
   const [showStats, setShowStats] = useState(false);
   const [editingPlayers, setEditingPlayers] = useState(false);
+  const [showShuffleAnimation, setShowShuffleAnimation] = useState(false);
   
   // Refs to always have latest state in callbacks
   const playersRef = useRef(players);
@@ -575,10 +576,13 @@ const BlackjackStats = () => {
     setCurrentPlayerIndex(0);
     setGamePhase('playing');
     
-    // Check if we hit the cut card
+    // Check if we hit the cut card - show shuffle animation instead of alert
     if (currentShoe.length <= cutCardPosition) {
       setTimeout(() => {
-        alert('Cut card reached! Reshuffling after this hand.');
+        setShowShuffleAnimation(true);
+        setTimeout(() => {
+          setShowShuffleAnimation(false);
+        }, 3000); // Show for 3 seconds
       }, 1000);
     }
     
@@ -1474,6 +1478,60 @@ const BlackjackStats = () => {
     <>
       {showTermsModal && <TermsModal onClose={closeTermsModal} alreadyAccepted={true} />}
       
+      {/* Shuffle Animation Overlay */}
+      {showShuffleAnimation && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.85)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          animation: 'fadeIn 0.3s ease-in'
+        }}>
+          <div style={{
+            fontSize: '5rem',
+            marginBottom: '30px',
+            animation: 'shuffleCards 1s ease-in-out infinite'
+          }}>
+            🃏
+          </div>
+          <div style={{
+            color: '#fbbf24',
+            fontSize: '2.5rem',
+            fontWeight: 'bold',
+            marginBottom: '15px',
+            textAlign: 'center',
+            textShadow: '0 0 20px rgba(251, 191, 36, 0.5)'
+          }}>
+            Cut Card Reached!
+          </div>
+          <div style={{
+            color: 'white',
+            fontSize: '1.5rem',
+            textAlign: 'center',
+            opacity: 0.9
+          }}>
+            Reshuffling after this hand...
+          </div>
+          <div style={{
+            marginTop: '40px',
+            display: 'flex',
+            gap: '15px'
+          }}>
+            <div style={{ fontSize: '3rem', animation: 'float 1.5s ease-in-out infinite', animationDelay: '0s' }}>🂠</div>
+            <div style={{ fontSize: '3rem', animation: 'float 1.5s ease-in-out infinite', animationDelay: '0.2s' }}>🂡</div>
+            <div style={{ fontSize: '3rem', animation: 'float 1.5s ease-in-out infinite', animationDelay: '0.4s' }}>🂢</div>
+            <div style={{ fontSize: '3rem', animation: 'float 1.5s ease-in-out infinite', animationDelay: '0.6s' }}>🂣</div>
+          </div>
+        </div>
+      )}
+      
       <div className="game-screen">
       <div className="game-header">
         <div className="title-section">
@@ -2058,6 +2116,39 @@ const BlackjackStats = () => {
           
           .card-value {
             font-size: 1.4rem;
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes shuffleCards {
+          0%, 100% {
+            transform: rotate(-10deg) scale(1);
+          }
+          25% {
+            transform: rotate(10deg) scale(1.1);
+          }
+          50% {
+            transform: rotate(-10deg) scale(1);
+          }
+          75% {
+            transform: rotate(10deg) scale(1.1);
+          }
+        }
+        
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(10deg);
           }
         }
       `}</style>
