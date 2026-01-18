@@ -52,6 +52,12 @@ button, .card {
   user-select: none;
 }
 
+/* Dimmed card for inactive split hand */
+.card.dimmed {
+  opacity: 0.4;
+  filter: grayscale(50%);
+}
+
 /* Smooth transitions */
 * {
   transition: background-color 0.3s ease;
