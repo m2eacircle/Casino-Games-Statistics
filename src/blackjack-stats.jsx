@@ -2060,37 +2060,60 @@ const BlackjackStats = () => {
                   {player.bet > 0 && <span className="bet-amount">Bet: {player.bet}</span>}
                   {/* Show WIN/LOSE/PUSH badge during result phase */}
                   {gamePhase === 'result' && player.bet > 0 && (() => {
-                    const playerValue = calculateHandValue(player.hand);
-                    const playerBusted = playerValue > 21;
                     const dealerValue = calculateHandValue(dealer.hand);
                     const dealerBusted = dealerValue > 21;
                     
-                    let result;
-                    if (playerBusted) {
-                      result = 'LOSE';
-                    } else if (dealerBusted || playerValue > dealerValue) {
-                      result = 'WIN';
-                    } else if (playerValue === dealerValue) {
-                      result = 'PUSH';
-                    } else {
-                      result = 'LOSE';
-                    }
+                    // Function to calculate result for a hand
+                    const getHandResult = (hand) => {
+                      const handValue = calculateHandValue(hand);
+                      const handBusted = handValue > 21;
+                      
+                      if (handBusted) {
+                        return 'LOSE';
+                      } else if (dealerBusted || handValue > dealerValue) {
+                        return 'WIN';
+                      } else if (handValue === dealerValue) {
+                        return 'PUSH';
+                      } else {
+                        return 'LOSE';
+                      }
+                    };
                     
-                    return (
+                    // Function to render badge
+                    const renderBadge = (result, label) => (
                       <span style={{
-                        padding: '4px 12px',
+                        padding: '4px 10px',
                         borderRadius: '12px',
                         fontWeight: 'bold',
-                        fontSize: '0.85rem',
+                        fontSize: '0.8rem',
                         background: result === 'WIN' ? '#10b981' : 
                                    result === 'LOSE' ? '#ef4444' : '#fbbf24',
                         color: 'white',
-                        marginLeft: '8px'
+                        marginLeft: '6px',
+                        display: 'inline-block'
                       }}>
+                        {label && <span style={{ opacity: 0.8, fontSize: '0.75rem' }}>{label}: </span>}
                         {result === 'WIN' ? '🎉 WIN' : 
                          result === 'LOSE' ? '💔 LOSE' : '🤝 PUSH'}
                       </span>
                     );
+                    
+                    // Check if player has split hand
+                    if (player.splitHand) {
+                      const hand1Result = getHandResult(player.hand);
+                      const hand2Result = getHandResult(player.splitHand);
+                      
+                      return (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginLeft: '8px' }}>
+                          {renderBadge(hand1Result, 'H1')}
+                          {renderBadge(hand2Result, 'H2')}
+                        </div>
+                      );
+                    } else {
+                      // Single hand
+                      const result = getHandResult(player.hand);
+                      return renderBadge(result, null);
+                    }
                   })()}
                 </div>
               </div>
