@@ -557,21 +557,23 @@ const BlackjackStats = () => {
             </button>
             
             <button 
-              className="mode-card"
-              onClick={() => setGameMode('switch')}
+              className="mode-card disabled"
+              disabled
+              title="Coming soon - special rules required"
             >
               <div className="mode-icon">♥</div>
               <h3>Switch</h3>
-              <p>Switch cards between hands</p>
+              <p>Coming soon</p>
             </button>
             
             <button 
-              className="mode-card"
-              onClick={() => setGameMode('bahama')}
+              className="mode-card disabled"
+              disabled
+              title="Coming soon - special rules required"
             >
               <div className="mode-icon">♦</div>
               <h3>Bahama</h3>
-              <p>Caribbean style rules</p>
+              <p>Coming soon</p>
             </button>
           </div>
         </div>
@@ -656,6 +658,17 @@ const BlackjackStats = () => {
           .mode-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          }
+          
+          .mode-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+          }
+          
+          .mode-card.disabled:hover {
+            transform: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
           }
           
           .mode-icon {
