@@ -757,6 +757,50 @@ const BlackjackStats = () => {
     dealerRef.current = dealer;
   }, [dealer]);
   
+  // AUTO-TRIGGER AI SWITCH DECISION
+  useEffect(() => {
+    if (gamePhase !== 'switch') return;
+    
+    const currentPlayer = players[currentPlayerIndex];
+    if (!currentPlayer) return;
+    
+    // If current player is AI and not locked, make switch decision after delay
+    if (currentPlayer.type === 'ai' && !currentPlayer.locked && currentPlayer.hand.length > 0 && currentPlayer.splitHand) {
+      const timeoutId = setTimeout(() => {
+        handleAISwitchDecision();
+      }, 2000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [currentPlayerIndex, players, gamePhase]);
+  
+  const handleAISwitchDecision = () => {
+    const currentPlayer = players[currentPlayerIndex];
+    if (!currentPlayer || currentPlayer.type !== 'ai' || currentPlayer.locked) return;
+    if (!currentPlayer.hand || !currentPlayer.splitHand) return;
+    
+    // AI strategy: Switch if it improves the worse hand
+    const hand1Value = calculateHandValue(currentPlayer.hand);
+    const hand2Value = calculateHandValue(currentPlayer.splitHand);
+    
+    // Calculate values after switch
+    const hand1AfterSwitch = calculateHandValue([currentPlayer.hand[0], currentPlayer.splitHand[1]]);
+    const hand2AfterSwitch = calculateHandValue([currentPlayer.splitHand[0], currentPlayer.hand[1]]);
+    
+    // Calculate minimum hand value (worst hand)
+    const minValueBefore = Math.min(hand1Value, hand2Value);
+    const minValueAfter = Math.min(hand1AfterSwitch, hand2AfterSwitch);
+    
+    // Switch if it improves the worst hand
+    if (minValueAfter > minValueBefore) {
+      console.log(`AI ${currentPlayer.name} decides to SWITCH`);
+      executeSwitch();
+    } else {
+      console.log(`AI ${currentPlayer.name} decides to KEEP`);
+      keepHands();
+    }
+  };
+  
   // AUTO-TRIGGER AI PLAY
   useEffect(() => {
     if (gamePhase !== 'playing') return;
@@ -1125,7 +1169,13 @@ const BlackjackStats = () => {
         setDealer({ hand: dealerHand, showAll: false });
         setShoe(newShoe);
         setCurrentPlayerIndex(0);
-        setGamePhase('playing');
+        
+        // In Switch mode, go to switch phase first
+        if (gameMode === 'switch') {
+          setGamePhase('switch');
+        } else {
+          setGamePhase('playing');
+        }
         setShowShuffleAnimation(false);
       }, 3000); // Wait for animation
       
@@ -1162,8 +1212,61 @@ const BlackjackStats = () => {
     setDealer({ hand: dealerHand, showAll: false });
     setShoe(currentShoe);
     setCurrentPlayerIndex(0);
-    setGamePhase('playing');
+    
+    // In Switch mode, go to switch phase first
+    if (gameMode === 'switch') {
+      setGamePhase('switch');
+    } else {
+      setGamePhase('playing');
+    }
   };
+  
+  // Switch mode - swap 2nd cards between two hands
+  const executeSwitch = () => {
+    setPlayers(prevPlayers => {
+      const updated = [...prevPlayers];
+      const player = updated[currentPlayerIndex];
+      
+      if (player.hand && player.splitHand && player.hand.length >= 2 && player.splitHand.length >= 2) {
+        // Swap the 2nd cards (index 1) between the two hands
+        const hand1Card2 = player.hand[1];
+        const hand2Card2 = player.splitHand[1];
+        
+        player.hand = [player.hand[0], hand2Card2];
+        player.splitHand = [player.splitHand[0], hand1Card2];
+      }
+      
+      return updated;
+    });
+    
+    // Move to next player's switch decision or start playing
+    moveToNextPlayerSwitch();
+  };
+  
+  const keepHands = () => {
+    // Keep hands as dealt, move to next player
+    moveToNextPlayerSwitch();
+  };
+  
+  const moveToNextPlayerSwitch = () => {
+    const nextPlayerIndex = currentPlayerIndex + 1;
+    
+    // Find next non-locked player
+    let nextIndex = nextPlayerIndex;
+    while (nextIndex < players.length && players[nextIndex].locked) {
+      nextIndex++;
+    }
+    
+    if (nextIndex >= players.length) {
+      // All players decided, start playing
+      setCurrentPlayerIndex(0);
+      setGamePhase('playing');
+    } else {
+      // Next player makes switch decision
+      setCurrentPlayerIndex(nextIndex);
+    }
+  };
+
   
   const playerAction = (action) => {
     const player = players[currentPlayerIndex];
@@ -2642,6 +2745,81 @@ const BlackjackStats = () => {
             <button className="action-btn primary" onClick={placeBets}>
               Place Bets (5 coins)
             </button>
+          )}
+          
+          {gamePhase === 'switch' && (
+            <div className="switch-section">
+              <h3 style={{ textAlign: 'center', marginBottom: '20px', color: '#fff' }}>
+                {players[currentPlayerIndex]?.name} - Switch Cards?
+              </h3>
+              
+              <div className="switch-preview" style={{
+                display: 'flex',
+                gap: '30px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                marginBottom: '30px'
+              }}>
+                {/* Current Hands */}
+                <div style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  padding: '20px',
+                  borderRadius: '15px',
+                  minWidth: '300px'
+                }}>
+                  <h4 style={{ color: '#fff', marginBottom: '15px', textAlign: 'center' }}>Current Hands</h4>
+                  <div style={{ color: '#fff', fontSize: '1.1rem', lineHeight: '2' }}>
+                    <div><strong>Hand 1:</strong> {players[currentPlayerIndex]?.hand?.map(c => c.display).join(' ')} = {calculateHandValue(players[currentPlayerIndex]?.hand || [])}</div>
+                    <div><strong>Hand 2:</strong> {players[currentPlayerIndex]?.splitHand?.map(c => c.display).join(' ')} = {calculateHandValue(players[currentPlayerIndex]?.splitHand || [])}</div>
+                  </div>
+                </div>
+                
+                <div style={{ fontSize: '2rem', color: '#ffd700' }}>⇄</div>
+                
+                {/* After Switch */}
+                <div style={{
+                  background: 'rgba(255,215,0,0.2)',
+                  padding: '20px',
+                  borderRadius: '15px',
+                  minWidth: '300px',
+                  border: '2px solid #ffd700'
+                }}>
+                  <h4 style={{ color: '#ffd700', marginBottom: '15px', textAlign: 'center' }}>After Switch</h4>
+                  <div style={{ color: '#fff', fontSize: '1.1rem', lineHeight: '2' }}>
+                    <div><strong>Hand 1:</strong> {players[currentPlayerIndex]?.hand?.[0]?.display} {players[currentPlayerIndex]?.splitHand?.[1]?.display} = {calculateHandValue([players[currentPlayerIndex]?.hand?.[0], players[currentPlayerIndex]?.splitHand?.[1]].filter(Boolean))}</div>
+                    <div><strong>Hand 2:</strong> {players[currentPlayerIndex]?.splitHand?.[0]?.display} {players[currentPlayerIndex]?.hand?.[1]?.display} = {calculateHandValue([players[currentPlayerIndex]?.splitHand?.[0], players[currentPlayerIndex]?.hand?.[1]].filter(Boolean))}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+                <button 
+                  className="action-btn" 
+                  onClick={executeSwitch}
+                  style={{
+                    background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+                    color: '#000',
+                    fontSize: '1.2rem',
+                    padding: '15px 40px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  🔄 Switch Cards
+                </button>
+                <button 
+                  className="action-btn" 
+                  onClick={keepHands}
+                  style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    fontSize: '1.2rem',
+                    padding: '15px 40px'
+                  }}
+                >
+                  Keep As Dealt
+                </button>
+              </div>
+            </div>
           )}
           
           {gamePhase === 'dealer' && (
