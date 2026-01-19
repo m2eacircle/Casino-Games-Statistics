@@ -724,9 +724,9 @@ const BlackjackStats = () => {
   const [numDecks, setNumDecks] = useState(6);
   const [numAIPlayers, setNumAIPlayers] = useState(2); // 2-4 AI players
   const [players, setPlayers] = useState([
-    { id: 1, type: 'human', name: 'Human Player', coins: 100, hand: [], bet: 0, locked: false },
-    { id: 2, type: 'ai', name: 'AI 1', coins: 100, hand: [], bet: 0, locked: false },
-    { id: 3, type: 'ai', name: 'AI 2', coins: 100, hand: [], bet: 0, locked: false }
+    { id: 1, type: 'human', name: 'Human Player', coins: 100, hand: [], splitHand: null, numSplits: 0, bet: 0, locked: false },
+    { id: 2, type: 'ai', name: 'AI 1', coins: 100, hand: [], splitHand: null, numSplits: 0, bet: 0, locked: false },
+    { id: 3, type: 'ai', name: 'AI 2', coins: 100, hand: [], splitHand: null, numSplits: 0, bet: 0, locked: false }
   ]);
   const [dealer, setDealer] = useState({ hand: [], showAll: false });
   const [shoe, setShoe] = useState([]);
@@ -943,6 +943,8 @@ const BlackjackStats = () => {
           name: `AI ${i + 1}`,
           coins: coinsByPlayerId[playerId] !== undefined ? coinsByPlayerId[playerId] : 100,
           hand: [],
+          splitHand: null,
+          numSplits: 0,
           bet: 0,
           locked: false
         });
@@ -1056,6 +1058,7 @@ const BlackjackStats = () => {
       hand: [],
       splitHand: null,
       playingSplit: false,
+      numSplits: 0,
       bet: 0,
       decisions: []
     })));
@@ -1086,6 +1089,7 @@ const BlackjackStats = () => {
       hand: player.locked ? [] : [currentShoe.pop(), currentShoe.pop()],
       splitHand: null,
       playingSplit: false,
+      numSplits: 0,
       decisions: [] // Reset decisions for new round
     }));
     
@@ -1191,18 +1195,19 @@ const BlackjackStats = () => {
       }
     } else if (action === 'split') {
       console.log('SPLIT clicked! Player:', player);
-      console.log('Can split?', player.coins >= 5, player.hand.length === 2, player.hand[0].value === player.hand[1].value, !player.splitHand);
+      console.log('Can split?', player.coins >= 5, player.hand.length === 2, player.hand[0].value === player.hand[1].value, player.numSplits < 3);
       
       if (player.coins >= 5 && player.hand.length === 2 && 
-          player.hand[0].value === player.hand[1].value && !player.splitHand) {
+          player.hand[0].value === player.hand[1].value && player.numSplits < 3) {
         // Deduct additional bet for split hand
         updatedPlayers[currentPlayerIndex].coins -= 5;
+        updatedPlayers[currentPlayerIndex].numSplits += 1; // Increment split counter
         
         // Create split hands
         const card1 = player.hand[0];
         const card2 = player.hand[1];
         
-        console.log('Splitting:', card1, 'and', card2);
+        console.log('Splitting:', card1, 'and', card2, '- Split #', player.numSplits + 1);
         
         // First hand gets one new card
         updatedPlayers[currentPlayerIndex].hand = [card1, currentShoe.pop()];
@@ -1213,6 +1218,7 @@ const BlackjackStats = () => {
         console.log('Hand 1:', updatedPlayers[currentPlayerIndex].hand);
         console.log('Hand 2 (split):', updatedPlayers[currentPlayerIndex].splitHand);
         console.log('Playing split?', updatedPlayers[currentPlayerIndex].playingSplit);
+        console.log('Total splits:', updatedPlayers[currentPlayerIndex].numSplits);
         
         setPlayers(updatedPlayers);
         setShoe(currentShoe);
@@ -1447,6 +1453,7 @@ const BlackjackStats = () => {
       hand: [],
       splitHand: null,      // Reset split hand
       playingSplit: false,  // Reset split flag
+      numSplits: 0,         // Reset split counter
       bet: 0
     }));
     
@@ -1470,6 +1477,7 @@ const BlackjackStats = () => {
           hand: [],
           splitHand: null,
           playingSplit: false,
+          numSplits: 0,
           bet: 5,
           coins: player.coins - 5
         };
@@ -1478,6 +1486,8 @@ const BlackjackStats = () => {
         ...player,
         hand: [],
         splitHand: null,
+        playingSplit: false,
+        numSplits: 0,
         playingSplit: false,
         bet: 0
       };
@@ -2141,7 +2151,7 @@ const BlackjackStats = () => {
     : (currentPlayer ? currentPlayer.hand : []);
   const canHit = gamePhase === 'playing' && currentPlayer && currentPlayer.type === 'human' && !currentPlayer.locked;
   const canDouble = canHit && activeHand.length === 2 && currentPlayer.coins >= 5;
-  const canSplit = canHit && !currentPlayer.splitHand && currentPlayer.hand.length === 2 && 
+  const canSplit = canHit && currentPlayer.numSplits < 3 && currentPlayer.hand.length === 2 && 
                    currentPlayer.hand[0].value === currentPlayer.hand[1].value && 
                    currentPlayer.coins >= 5;
   
