@@ -445,38 +445,121 @@ const ReplayModal = ({ onClose, gameHistory }) => {
           
           {/* Players Section */}
           <h3 style={{ margin: '0 0 15px 0', color: '#fbbf24', fontSize: '1.3rem' }}>👥 Players</h3>
-          {gameHistory.players.map((player, idx) => (
-            <div key={idx} style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '15px',
-              padding: '20px',
-              marginBottom: '15px',
-              border: player.result === 'WIN' ? '2px solid #10b981' : 
-                      player.result === 'LOSE' ? '2px solid #ef4444' : 
-                      '2px solid #fbbf24'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                <div>
-                  <h4 style={{ margin: '0 0 5px 0', fontSize: '1.2rem' }}>
-                    {player.type === 'ai' ? '🤖' : '👤'} {player.name}
-                  </h4>
-                  <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-                    Bet: <strong>{player.bet} coins</strong>
+          {gameHistory.players.map((player, idx) => {
+            // Calculate results for each hand if split
+            const dealerValue = gameHistory.dealer.value;
+            const dealerBusted = gameHistory.dealer.busted;
+            
+            const getHandResult = (hand) => {
+              const handValue = hand.reduce((sum, card) => {
+                let value = sum;
+                if (card.value === 11) {
+                  value += 11;
+                } else {
+                  value += card.value;
+                }
+                return value;
+              }, 0);
+              
+              // Adjust for aces
+              let total = handValue;
+              let aces = hand.filter(c => c.value === 11).length;
+              while (total > 21 && aces > 0) {
+                total -= 10;
+                aces--;
+              }
+              
+              const handBusted = total > 21;
+              
+              if (handBusted) {
+                return 'LOSE';
+              } else if (dealerBusted || total > dealerValue) {
+                return 'WIN';
+              } else if (total === dealerValue) {
+                return 'PUSH';
+              } else {
+                return 'LOSE';
+              }
+            };
+            
+            const hand1Result = getHandResult(player.hand);
+            const hand2Result = player.splitHand ? getHandResult(player.splitHand) : null;
+            
+            // Determine border color based on overall result or worst result if split
+            let borderColor = '#fbbf24'; // Default PUSH
+            if (player.splitHand) {
+              // If split, show border based on worst result
+              if (hand1Result === 'LOSE' || hand2Result === 'LOSE') {
+                borderColor = '#ef4444';
+              } else if (hand1Result === 'WIN' && hand2Result === 'WIN') {
+                borderColor = '#10b981';
+              }
+            } else {
+              borderColor = hand1Result === 'WIN' ? '#10b981' : 
+                           hand1Result === 'LOSE' ? '#ef4444' : '#fbbf24';
+            }
+            
+            return (
+              <div key={idx} style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '15px',
+                padding: '20px',
+                marginBottom: '15px',
+                border: `2px solid ${borderColor}`
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 5px 0', fontSize: '1.2rem' }}>
+                      {player.type === 'ai' ? '🤖' : '👤'} {player.name}
+                    </h4>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+                      Bet: <strong>{player.bet} coins</strong> {player.splitHand && '(×2 for split)'}
+                    </div>
                   </div>
+                  
+                  {/* Show separate badges for split hands */}
+                  {player.splitHand ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{
+                        padding: '6px 16px',
+                        borderRadius: '20px',
+                        fontWeight: 'bold',
+                        fontSize: '0.95rem',
+                        background: hand1Result === 'WIN' ? '#10b981' : 
+                                   hand1Result === 'LOSE' ? '#ef4444' : '#fbbf24',
+                        color: 'white'
+                      }}>
+                        H1: {hand1Result === 'WIN' ? '🎉 WIN' : 
+                             hand1Result === 'LOSE' ? '💔 LOSE' : '🤝 PUSH'}
+                      </div>
+                      <div style={{
+                        padding: '6px 16px',
+                        borderRadius: '20px',
+                        fontWeight: 'bold',
+                        fontSize: '0.95rem',
+                        background: hand2Result === 'WIN' ? '#10b981' : 
+                                   hand2Result === 'LOSE' ? '#ef4444' : '#fbbf24',
+                        color: 'white'
+                      }}>
+                        H2: {hand2Result === 'WIN' ? '🎉 WIN' : 
+                             hand2Result === 'LOSE' ? '💔 LOSE' : '🤝 PUSH'}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      padding: '8px 20px',
+                      borderRadius: '20px',
+                      fontWeight: 'bold',
+                      fontSize: '1.1rem',
+                      background: hand1Result === 'WIN' ? '#10b981' : 
+                                 hand1Result === 'LOSE' ? '#ef4444' : '#fbbf24',
+                      color: 'white'
+                    }}>
+                      {hand1Result === 'WIN' ? '🎉 WIN' : 
+                       hand1Result === 'LOSE' ? '💔 LOSE' : '🤝 PUSH'}
+                    </div>
+                  )}
                 </div>
-                <div style={{
-                  padding: '8px 20px',
-                  borderRadius: '20px',
-                  fontWeight: 'bold',
-                  fontSize: '1.1rem',
-                  background: player.result === 'WIN' ? '#10b981' : 
-                              player.result === 'LOSE' ? '#ef4444' : '#fbbf24',
-                  color: 'white'
-                }}>
-                  {player.result === 'WIN' ? '🎉 WIN' : 
-                   player.result === 'LOSE' ? '💔 LOSE' : '🤝 PUSH'}
-                </div>
-              </div>
               
               <div style={{ marginBottom: '10px' }}>
                 <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '8px' }}>Hand:</div>
