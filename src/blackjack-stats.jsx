@@ -1383,6 +1383,33 @@ const BlackjackStats = () => {
     setPlayers(updatedPlayers);
     setShoe(currentShoe);
     
+    // Check if all AI players are out of coins (exception to 24-hour rule)
+    const aiPlayers = updatedPlayers.filter(p => p.type === 'ai');
+    const allAIBroke = aiPlayers.length > 0 && aiPlayers.every(p => p.coins === 0);
+    
+    if (allAIBroke) {
+      // Reset ALL players to 100 coins and clear locks (exception rule)
+      const resetPlayers = updatedPlayers.map(player => ({
+        ...player,
+        coins: 100,
+        locked: false
+      }));
+      
+      setPlayers(resetPlayers);
+      
+      // Clear locked players from localStorage
+      localStorage.removeItem('lockedPlayers');
+      
+      // Clear saved coins so they start fresh
+      localStorage.removeItem('blackjackPlayerCoins');
+      
+      // Show message and go back to setup
+      alert('All AI players are out of coins! Resetting everyone to 100 coins. Please set up a new game.');
+      resetGameState();
+      setGamePhase('setup');
+      return; // Exit early, don't save game history
+    }
+    
     // Save game history for replay
     const history = {
       players: updatedPlayers.map(p => {
@@ -1442,6 +1469,39 @@ const BlackjackStats = () => {
   };
   
   const nextRound = () => {
+    // Check if all AI players are out of coins (exception to 24-hour rule)
+    const aiPlayers = players.filter(p => p.type === 'ai');
+    const allAIBroke = aiPlayers.length > 0 && aiPlayers.every(p => p.coins === 0);
+    
+    if (allAIBroke) {
+      // Reset ALL players to 100 coins and clear locks (exception rule)
+      const resetPlayers = players.map(player => ({
+        ...player,
+        coins: 100,
+        locked: false,
+        hand: [],
+        splitHand: null,
+        playingSplit: false,
+        numSplits: 0,
+        bet: 0,
+        decisions: []
+      }));
+      
+      setPlayers(resetPlayers);
+      
+      // Clear locked players from localStorage
+      localStorage.removeItem('lockedPlayers');
+      
+      // Clear saved coins so they start fresh
+      localStorage.removeItem('blackjackPlayerCoins');
+      
+      // Show message and go back to setup
+      alert('All AI players are out of coins! Everyone has been reset to 100 coins. Please set up a new game.');
+      resetGameState();
+      setGamePhase('setup');
+      return;
+    }
+    
     if (shoe.length <= cutCardPosition) {
       // Reshuffle
       const newShoe = initializeShoe(numDecks);
@@ -1463,6 +1523,39 @@ const BlackjackStats = () => {
   };
   
   const nextRoundAndBet = () => {
+    // Check if all AI players are out of coins (exception to 24-hour rule)
+    const aiPlayers = players.filter(p => p.type === 'ai');
+    const allAIBroke = aiPlayers.length > 0 && aiPlayers.every(p => p.coins === 0);
+    
+    if (allAIBroke) {
+      // Reset ALL players to 100 coins and clear locks (exception rule)
+      const resetPlayers = players.map(player => ({
+        ...player,
+        coins: 100,
+        locked: false,
+        hand: [],
+        splitHand: null,
+        playingSplit: false,
+        numSplits: 0,
+        bet: 0,
+        decisions: []
+      }));
+      
+      setPlayers(resetPlayers);
+      
+      // Clear locked players from localStorage
+      localStorage.removeItem('lockedPlayers');
+      
+      // Clear saved coins so they start fresh
+      localStorage.removeItem('blackjackPlayerCoins');
+      
+      // Show message and go back to setup
+      alert('All AI players are out of coins! Everyone has been reset to 100 coins. Please set up a new game.');
+      resetGameState();
+      setGamePhase('setup');
+      return;
+    }
+    
     if (shoe.length <= cutCardPosition) {
       // Reshuffle
       const newShoe = initializeShoe(numDecks);
