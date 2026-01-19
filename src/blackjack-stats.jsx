@@ -2322,6 +2322,63 @@ const BlackjackStats = () => {
                   )}
                 </>
               )}
+              
+              {/* Action Buttons - Only show for human player during their turn */}
+              {player.type === 'human' && idx === currentPlayerIndex && gamePhase === 'playing' && !player.locked && canHit && (
+                <div className="action-grid" style={{ marginTop: '15px' }}>
+                  <button 
+                    className="action-btn" 
+                    onClick={() => playerAction('hit')}
+                  >
+                    <div className="btn-content">
+                      <span>HIT</span>
+                      <span className="win-prob">
+                        {calculateWinProbability(activeHand, dealer.hand[0], 'hit', null)}%
+                      </span>
+                    </div>
+                  </button>
+                  
+                  <button 
+                    className="action-btn" 
+                    onClick={() => playerAction('stand')}
+                  >
+                    <div className="btn-content">
+                      <span>STAND</span>
+                      <span className="win-prob">
+                        {calculateWinProbability(activeHand, dealer.hand[0], 'stand', null)}%
+                      </span>
+                    </div>
+                  </button>
+                  
+                  {canDouble && (
+                    <button 
+                      className="action-btn" 
+                      onClick={() => playerAction('double')}
+                    >
+                      <div className="btn-content">
+                        <span>DOUBLE</span>
+                        <span className="win-prob">
+                          {calculateWinProbability(activeHand, dealer.hand[0], 'double', null)}%
+                        </span>
+                      </div>
+                    </button>
+                  )}
+                  
+                  {canSplit && (
+                    <button 
+                      className="action-btn" 
+                      onClick={() => playerAction('split')}
+                    >
+                      <div className="btn-content">
+                        <span>SPLIT</span>
+                        <span className="win-prob">
+                          {calculateWinProbability(activeHand, dealer.hand[0], 'split', null)}%
+                        </span>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -2332,62 +2389,6 @@ const BlackjackStats = () => {
             <button className="action-btn primary" onClick={placeBets}>
               Place Bets (5 coins)
             </button>
-          )}
-          
-          {canHit && (
-            <div className="action-grid">
-              <button 
-                className="action-btn" 
-                onClick={() => playerAction('hit')}
-              >
-                <div className="btn-content">
-                  <span>HIT</span>
-                  <span className="win-prob">
-                    {calculateWinProbability(activeHand, dealer.hand[0], 'hit', null)}%
-                  </span>
-                </div>
-              </button>
-              
-              <button 
-                className="action-btn" 
-                onClick={() => playerAction('stand')}
-              >
-                <div className="btn-content">
-                  <span>STAND</span>
-                  <span className="win-prob">
-                    {calculateWinProbability(activeHand, dealer.hand[0], 'stand', null)}%
-                  </span>
-                </div>
-              </button>
-              
-              {canDouble && (
-                <button 
-                  className="action-btn" 
-                  onClick={() => playerAction('double')}
-                >
-                  <div className="btn-content">
-                    <span>DOUBLE</span>
-                    <span className="win-prob">
-                      {calculateWinProbability(activeHand, dealer.hand[0], 'double', null)}%
-                    </span>
-                  </div>
-                </button>
-              )}
-              
-              {canSplit && (
-                <button 
-                  className="action-btn" 
-                  onClick={() => playerAction('split')}
-                >
-                  <div className="btn-content">
-                    <span>SPLIT</span>
-                    <span className="win-prob">
-                      {calculateWinProbability(currentPlayer.hand, dealer.hand[0], 'split', null)}%
-                    </span>
-                  </div>
-                </button>
-              )}
-            </div>
           )}
           
           {gamePhase === 'dealer' && (
