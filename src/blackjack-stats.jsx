@@ -1096,14 +1096,28 @@ const BlackjackStats = () => {
         const newShoe = initializeShoe(numDecks);
         
         // Now deal from the new shoe
-        const updatedPlayers = currentPlayers.map(player => ({
-          ...player,
-          hand: player.locked ? [] : [newShoe.pop(), newShoe.pop()],
-          splitHand: null,
-          playingSplit: false,
-          numSplits: 0,
-          decisions: []
-        }));
+        // In Switch mode, each player gets TWO hands (4 cards total)
+        const updatedPlayers = currentPlayers.map(player => {
+          if (gameMode === 'switch') {
+            return {
+              ...player,
+              hand: player.locked ? [] : [newShoe.pop(), newShoe.pop()],
+              splitHand: player.locked ? null : [newShoe.pop(), newShoe.pop()], // Always deal 2nd hand in Switch
+              playingSplit: false,
+              numSplits: 0,
+              decisions: []
+            };
+          } else {
+            return {
+              ...player,
+              hand: player.locked ? [] : [newShoe.pop(), newShoe.pop()],
+              splitHand: null,
+              playingSplit: false,
+              numSplits: 0,
+              decisions: []
+            };
+          }
+        });
         
         const dealerHand = [newShoe.pop(), newShoe.pop()];
         
@@ -1119,14 +1133,28 @@ const BlackjackStats = () => {
     }
     
     // Normal dealing (no reshuffle needed)
-    const updatedPlayers = currentPlayers.map(player => ({
-      ...player,
-      hand: player.locked ? [] : [currentShoe.pop(), currentShoe.pop()],
-      splitHand: null,
-      playingSplit: false,
-      numSplits: 0,
-      decisions: [] // Reset decisions for new round
-    }));
+    // In Switch mode, each player gets TWO hands (4 cards total)
+    const updatedPlayers = currentPlayers.map(player => {
+      if (gameMode === 'switch') {
+        return {
+          ...player,
+          hand: player.locked ? [] : [currentShoe.pop(), currentShoe.pop()],
+          splitHand: player.locked ? null : [currentShoe.pop(), currentShoe.pop()], // Always deal 2nd hand in Switch
+          playingSplit: false,
+          numSplits: 0,
+          decisions: []
+        };
+      } else {
+        return {
+          ...player,
+          hand: player.locked ? [] : [currentShoe.pop(), currentShoe.pop()],
+          splitHand: null,
+          playingSplit: false,
+          numSplits: 0,
+          decisions: []
+        };
+      }
+    });
     
     const dealerHand = [currentShoe.pop(), currentShoe.pop()];
     
@@ -2281,7 +2309,8 @@ const BlackjackStats = () => {
     : (currentPlayer ? currentPlayer.hand : []);
   const canHit = gamePhase === 'playing' && currentPlayer && currentPlayer.type === 'human' && !currentPlayer.locked;
   const canDouble = canHit && activeHand.length === 2 && currentPlayer.coins >= 5;
-  const canSplit = canHit && currentPlayer.numSplits < 2 && currentPlayer.hand.length === 2 && 
+  // In Switch mode, disable split to avoid structural issues (would need array of hands)
+  const canSplit = canHit && gameMode !== 'switch' && currentPlayer.numSplits < 2 && currentPlayer.hand.length === 2 && 
                    currentPlayer.hand[0].value === currentPlayer.hand[1].value && 
                    currentPlayer.coins >= 5;
   
