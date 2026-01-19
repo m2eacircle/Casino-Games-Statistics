@@ -1084,6 +1084,39 @@ const BlackjackStats = () => {
   
   const dealInitialCards = (currentPlayers) => {
     let currentShoe = [...shoe];
+    
+    // Check if we need to reshuffle BEFORE dealing
+    if (currentShoe.length <= cutCardPosition) {
+      setShowShuffleAnimation(true);
+      
+      setTimeout(() => {
+        // Reshuffle the deck
+        const newShoe = initializeShoe(numDecks);
+        
+        // Now deal from the new shoe
+        const updatedPlayers = currentPlayers.map(player => ({
+          ...player,
+          hand: player.locked ? [] : [newShoe.pop(), newShoe.pop()],
+          splitHand: null,
+          playingSplit: false,
+          numSplits: 0,
+          decisions: []
+        }));
+        
+        const dealerHand = [newShoe.pop(), newShoe.pop()];
+        
+        setPlayers(updatedPlayers);
+        setDealer({ hand: dealerHand, showAll: false });
+        setShoe(newShoe);
+        setCurrentPlayerIndex(0);
+        setGamePhase('playing');
+        setShowShuffleAnimation(false);
+      }, 3000); // Wait for animation
+      
+      return; // Exit - will deal after reshuffle
+    }
+    
+    // Normal dealing (no reshuffle needed)
     const updatedPlayers = currentPlayers.map(player => ({
       ...player,
       hand: player.locked ? [] : [currentShoe.pop(), currentShoe.pop()],
@@ -1100,18 +1133,6 @@ const BlackjackStats = () => {
     setShoe(currentShoe);
     setCurrentPlayerIndex(0);
     setGamePhase('playing');
-    
-    // Check if we hit the cut card - show shuffle animation instead of alert
-    if (currentShoe.length <= cutCardPosition) {
-      setTimeout(() => {
-        setShowShuffleAnimation(true);
-        setTimeout(() => {
-          setShowShuffleAnimation(false);
-        }, 3000); // Show for 3 seconds
-      }, 1000);
-    }
-    
-    // useEffect will automatically trigger AI if first player is AI
   };
   
   const playerAction = (action) => {
