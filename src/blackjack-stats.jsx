@@ -882,8 +882,8 @@ const BlackjackStats = () => {
       [newShoe[i], newShoe[j]] = [newShoe[j], newShoe[i]];
     }
     
-    // Place cut card at 75% through shoe
-    const cutPosition = Math.floor(newShoe.length * 0.75);
+    // Place cut card at 50% through shoe (shuffle when under 50% remains)
+    const cutPosition = Math.floor(newShoe.length * 0.5);
     setCutCardPosition(cutPosition);
     
     return newShoe;
@@ -2323,7 +2323,7 @@ const BlackjackStats = () => {
                 onClick={() => setGamePhase('setup')}
                 style={{ flex: '1', minWidth: '200px', background: '#ef4444' }}
               >
-                🎮 Select Game Mode
+                ⚙️ Back to Game Setup
               </button>
             </div>
           )}
