@@ -1216,10 +1216,10 @@ const BlackjackStats = () => {
       }
     } else if (action === 'split') {
       console.log('SPLIT clicked! Player:', player);
-      console.log('Can split?', player.coins >= 5, player.hand.length === 2, player.hand[0].value === player.hand[1].value, player.numSplits < 3);
+      console.log('Can split?', player.coins >= 5, player.hand.length === 2, player.hand[0].value === player.hand[1].value, player.numSplits < 2);
       
       if (player.coins >= 5 && player.hand.length === 2 && 
-          player.hand[0].value === player.hand[1].value && player.numSplits < 3) {
+          player.hand[0].value === player.hand[1].value && player.numSplits < 2) {
         // Deduct additional bet for split hand
         updatedPlayers[currentPlayerIndex].coins -= 5;
         updatedPlayers[currentPlayerIndex].numSplits += 1; // Increment split counter
@@ -2273,7 +2273,7 @@ const BlackjackStats = () => {
     : (currentPlayer ? currentPlayer.hand : []);
   const canHit = gamePhase === 'playing' && currentPlayer && currentPlayer.type === 'human' && !currentPlayer.locked;
   const canDouble = canHit && activeHand.length === 2 && currentPlayer.coins >= 5;
-  const canSplit = canHit && currentPlayer.numSplits < 3 && currentPlayer.hand.length === 2 && 
+  const canSplit = canHit && currentPlayer.numSplits < 2 && currentPlayer.hand.length === 2 && 
                    currentPlayer.hand[0].value === currentPlayer.hand[1].value && 
                    currentPlayer.coins >= 5;
   
