@@ -717,6 +717,252 @@ const ReplayModal = ({ onClose, gameHistory }) => {
   );
 };
 
+// Rules Modal Component
+const RulesModal = ({ onClose }) => {
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.8)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10000,
+      padding: '20px'
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: '20px',
+        maxWidth: '600px',
+        width: '100%',
+        maxHeight: '90vh',
+        overflow: 'auto',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+      }}>
+        <div style={{
+          padding: '30px',
+          color: 'white'
+        }}>
+          <h2 style={{
+            margin: '0 0 25px 0',
+            fontSize: '2rem',
+            textAlign: 'center',
+            borderBottom: '2px solid rgba(255,255,255,0.3)',
+            paddingBottom: '15px'
+          }}>
+            Regular Mode Rules
+          </h2>
+          
+          <div style={{
+            fontSize: '1.1rem',
+            lineHeight: '1.8'
+          }}>
+            <h3 style={{ marginTop: '20px', marginBottom: '10px', fontSize: '1.4rem' }}>
+              🎯 Goal
+            </h3>
+            <p style={{ marginLeft: '15px' }}>
+              The goal of blackjack is to reach 21 without going over.
+            </p>
+            
+            <h3 style={{ marginTop: '25px', marginBottom: '10px', fontSize: '1.4rem' }}>
+              🃏 Card Values
+            </h3>
+            <ul style={{ marginLeft: '30px' }}>
+              <li><strong>Aces:</strong> Count as 1 or 11</li>
+              <li><strong>J, Q, K:</strong> Count as 10</li>
+              <li><strong>Number cards:</strong> Face value</li>
+            </ul>
+            
+            <h3 style={{ marginTop: '25px', marginBottom: '10px', fontSize: '1.4rem' }}>
+              🎮 Game Actions
+            </h3>
+            <div style={{ marginLeft: '15px' }}>
+              <p><strong>Hit:</strong> Request one or more additional cards.</p>
+              <p><strong>Stand:</strong> Stop taking cards and play with your current hand.</p>
+              <p><strong>Split:</strong> If the first two cards have the same value, you can split into two hands, up to a maximum of four hands. Each hand is played separately.</p>
+              <p><strong>Double:</strong> After the first two cards are dealt, wager an additional amount equal to the original bet. You receive only one additional card after doubling down.</p>
+            </div>
+            
+            <h3 style={{ marginTop: '25px', marginBottom: '10px', fontSize: '1.4rem' }}>
+              🏆 Winning
+            </h3>
+            <ul style={{ marginLeft: '30px' }}>
+              <li><strong>Blackjack:</strong> 21 with first 2 cards (pays 3:2)</li>
+              <li><strong>Win:</strong> Higher total than dealer without busting</li>
+              <li><strong>Push:</strong> Same total as dealer (tie)</li>
+              <li><strong>Bust:</strong> Over 21 (automatic loss)</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div style={{
+          padding: '20px 30px 30px 30px',
+          textAlign: 'center',
+          borderTop: '2px solid rgba(255,255,255,0.2)'
+        }}>
+          <button 
+            onClick={onClose}
+            style={{
+              padding: '15px 40px',
+              background: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '1.1rem',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontWeight: 'bold'
+            }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Switch Rules Modal Component
+const SwitchRulesModal = ({ onClose }) => {
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.8)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10000,
+      padding: '20px'
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        borderRadius: '20px',
+        maxWidth: '700px',
+        width: '100%',
+        maxHeight: '90vh',
+        overflow: 'auto',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+      }}>
+        <div style={{
+          padding: '30px',
+          color: 'white'
+        }}>
+          <h2 style={{
+            margin: '0 0 25px 0',
+            fontSize: '2rem',
+            textAlign: 'center',
+            borderBottom: '2px solid rgba(255,255,255,0.3)',
+            paddingBottom: '15px'
+          }}>
+            Switch Mode Rules
+          </h2>
+          
+          <div style={{
+            fontSize: '1.1rem',
+            lineHeight: '1.8'
+          }}>
+            <div style={{
+              background: 'rgba(255,255,255,0.2)',
+              padding: '15px',
+              borderRadius: '10px',
+              marginBottom: '20px'
+            }}>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>
+                ℹ️ The basic rules are the same as Regular Mode, with additional rules specific to Switch Mode.
+              </p>
+            </div>
+            
+            <h3 style={{ marginTop: '20px', marginBottom: '10px', fontSize: '1.4rem' }}>
+              🃏 Starting Hands
+            </h3>
+            <p style={{ marginLeft: '15px' }}>
+              In Switch Mode, a player is dealt <strong>two pairs of cards</strong> to start the game.
+              Each pair becomes a separate hand that is played independently.
+            </p>
+            
+            <h3 style={{ marginTop: '25px', marginBottom: '10px', fontSize: '1.4rem' }}>
+              🎮 Game Actions and Rules
+            </h3>
+            
+            <div style={{ marginLeft: '15px' }}>
+              <p><strong>🔄 Switch:</strong></p>
+              <p style={{ marginLeft: '20px', marginTop: '5px' }}>
+                After receiving the first two cards for both hands, a player may choose to 
+                <strong> keep the hands as dealt</strong> or ask the dealer to 
+                <strong> switch the second card between the two hands</strong>.
+              </p>
+              
+              <p style={{ marginTop: '15px' }}><strong>🤝 Push (Dealer 22):</strong></p>
+              <p style={{ marginLeft: '20px', marginTop: '5px' }}>
+                If a player's hand is not a blackjack and the dealer's hand totals a 
+                <strong> hard 22</strong>, the result is a <strong>push</strong>. 
+                The hand neither wins nor loses, and the player's bet is returned.
+              </p>
+              
+              <p style={{ marginTop: '15px' }}><strong>💎 Super Match:</strong></p>
+              <p style={{ marginLeft: '20px', marginTop: '5px' }}>
+                A player may wager half of the original bet on the Super Match side bet. 
+                If the player's two pairs meet the conditions below, the Super Match wins:
+              </p>
+              <ul style={{ marginLeft: '40px', marginTop: '10px' }}>
+                <li>One pair: 1:1</li>
+                <li>Three of a kind: 5:1</li>
+                <li>Two pairs: 7:1</li>
+                <li>Four of a kind: 50:1</li>
+              </ul>
+            </div>
+            
+            <div style={{
+              background: 'rgba(255,255,0,0.2)',
+              border: '2px solid rgba(255,255,0,0.5)',
+              padding: '15px',
+              borderRadius: '10px',
+              marginTop: '25px'
+            }}>
+              <p style={{ margin: 0, fontSize: '0.95rem' }}>
+                <strong>⚠️ Note:</strong> Due to logic complexity, the Switch Mode in this app 
+                does not fully follow the real Switch rules. For example, this app does not 
+                support Split play in Switch Mode, while the official Switch rules allow Split 
+                play with the same rules as Regular Mode.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div style={{
+          padding: '20px 30px 30px 30px',
+          textAlign: 'center',
+          borderTop: '2px solid rgba(255,255,255,0.2)'
+        }}>
+          <button 
+            onClick={onClose}
+            style={{
+              padding: '15px 40px',
+              background: '#f5576c',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '1.1rem',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontWeight: 'bold'
+            }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const BlackjackStats = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -738,6 +984,8 @@ const BlackjackStats = () => {
   const [showShuffleAnimation, setShowShuffleAnimation] = useState(false);
   const [gameHistory, setGameHistory] = useState(null); // Store last game for replay
   const [showReplay, setShowReplay] = useState(false); // Show replay modal
+  const [showRulesModal, setShowRulesModal] = useState(false); // Show rules modal
+  const [showSwitchRulesModal, setShowSwitchRulesModal] = useState(false); // Show Switch rules modal
   
   // Refs to always have latest state in callbacks
   const playersRef = useRef(players);
@@ -1904,6 +2152,8 @@ const BlackjackStats = () => {
     return (
       <>
         {showTermsModal && <TermsModal onClose={closeTermsModal} alreadyAccepted={true} />}
+        {showRulesModal && <RulesModal onClose={() => setShowRulesModal(false)} />}
+        {showSwitchRulesModal && <SwitchRulesModal onClose={() => setShowSwitchRulesModal(false)} />}
         
         <div className="game-select-screen">
         <div className="header">
@@ -1924,6 +2174,24 @@ const BlackjackStats = () => {
               <div className="mode-icon">♠</div>
               <h3>Regular</h3>
               <p>Classic blackjack rules</p>
+              <a 
+                href="#"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setShowRulesModal(true);
+                }}
+                style={{
+                  marginTop: '10px',
+                  fontSize: '0.9rem',
+                  color: '#6366f1',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  display: 'inline-block'
+                }}
+              >
+                View Rules
+              </a>
             </button>
             
             <button 
@@ -1933,6 +2201,24 @@ const BlackjackStats = () => {
               <div className="mode-icon">♥</div>
               <h3>Switch</h3>
               <p>Switch cards between hands</p>
+              <a 
+                href="#"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setShowSwitchRulesModal(true);
+                }}
+                style={{
+                  marginTop: '10px',
+                  fontSize: '0.9rem',
+                  color: '#6366f1',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  display: 'inline-block'
+                }}
+              >
+                View Rules
+              </a>
             </button>
             
             <button 
@@ -2793,31 +3079,57 @@ const BlackjackStats = () => {
                 </div>
               </div>
               
-              <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-                <button 
-                  className="action-btn" 
-                  onClick={executeSwitch}
-                  style={{
-                    background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
-                    color: '#000',
-                    fontSize: '1.2rem',
-                    padding: '15px 40px',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  🔄 Switch Cards
-                </button>
-                <button 
-                  className="action-btn" 
-                  onClick={keepHands}
-                  style={{
-                    background: 'rgba(255,255,255,0.2)',
-                    fontSize: '1.2rem',
-                    padding: '15px 40px'
-                  }}
-                >
-                  Keep As Dealt
-                </button>
+              <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+                {players[currentPlayerIndex]?.type === 'ai' && (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    padding: '15px 30px',
+                    borderRadius: '10px',
+                    marginBottom: '10px',
+                    fontSize: '1.1rem',
+                    color: '#ffd700'
+                  }}>
+                    🤖 AI Thinking...
+                  </div>
+                )}
+                
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  <button 
+                    className="action-btn" 
+                    onClick={executeSwitch}
+                    disabled={players[currentPlayerIndex]?.type === 'ai'}
+                    style={{
+                      background: players[currentPlayerIndex]?.type === 'ai' 
+                        ? 'rgba(128,128,128,0.3)' 
+                        : 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+                      color: players[currentPlayerIndex]?.type === 'ai' ? '#666' : '#000',
+                      fontSize: '1.2rem',
+                      padding: '15px 40px',
+                      fontWeight: 'bold',
+                      cursor: players[currentPlayerIndex]?.type === 'ai' ? 'not-allowed' : 'pointer',
+                      opacity: players[currentPlayerIndex]?.type === 'ai' ? 0.5 : 1
+                    }}
+                  >
+                    🔄 Switch Cards
+                  </button>
+                  <button 
+                    className="action-btn" 
+                    onClick={keepHands}
+                    disabled={players[currentPlayerIndex]?.type === 'ai'}
+                    style={{
+                      background: players[currentPlayerIndex]?.type === 'ai' 
+                        ? 'rgba(128,128,128,0.3)' 
+                        : 'rgba(255,255,255,0.2)',
+                      fontSize: '1.2rem',
+                      padding: '15px 40px',
+                      cursor: players[currentPlayerIndex]?.type === 'ai' ? 'not-allowed' : 'pointer',
+                      opacity: players[currentPlayerIndex]?.type === 'ai' ? 0.5 : 1,
+                      color: players[currentPlayerIndex]?.type === 'ai' ? '#666' : '#fff'
+                    }}
+                  >
+                    Keep As Dealt
+                  </button>
+                </div>
               </div>
             </div>
           )}
