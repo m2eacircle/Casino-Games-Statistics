@@ -1734,6 +1734,13 @@ const BlackjackStats = () => {
       
       let totalWinnings = 0;
       
+      // Each hand has a bet of 5 coins (or original bet amount)
+      const betPerHand = 5; // Each hand is bet separately
+      
+      console.log(`=== Resolving ${player.name} ===`);
+      console.log(`Has split hand: ${!!player.splitHand}`);
+      console.log(`Coins before resolution: ${player.coins}`);
+      
       // Calculate winnings for main hand
       const playerValue = calculateHandValue(player.hand);
       const playerBusted = playerValue > 21;
@@ -1741,12 +1748,16 @@ const BlackjackStats = () => {
       let mainHandWinnings = 0;
       if (playerBusted) {
         mainHandWinnings = 0; // Lose bet
+        console.log(`Main hand BUSTED (${playerValue}). Winnings: 0`);
       } else if (dealerBusted || playerValue > dealerValue) {
-        mainHandWinnings = player.bet * 2; // Win
+        mainHandWinnings = betPerHand * 2; // Win: return bet + winnings
+        console.log(`Main hand WIN (${playerValue} vs ${dealerValue}). Winnings: ${mainHandWinnings}`);
       } else if (playerValue === dealerValue) {
-        mainHandWinnings = player.bet; // Push
+        mainHandWinnings = betPerHand; // Push: return bet only
+        console.log(`Main hand PUSH (${playerValue} vs ${dealerValue}). Winnings: ${mainHandWinnings}`);
+      } else {
+        console.log(`Main hand LOSE (${playerValue} vs ${dealerValue}). Winnings: 0`);
       }
-      // else lose (0)
       
       totalWinnings += mainHandWinnings;
       
@@ -1758,17 +1769,25 @@ const BlackjackStats = () => {
         let splitHandWinnings = 0;
         if (splitBusted) {
           splitHandWinnings = 0; // Lose bet
+          console.log(`Split hand BUSTED (${splitValue}). Winnings: 0`);
         } else if (dealerBusted || splitValue > dealerValue) {
-          splitHandWinnings = player.bet * 2; // Win (same bet amount)
+          splitHandWinnings = betPerHand * 2; // Win: return bet + winnings
+          console.log(`Split hand WIN (${splitValue} vs ${dealerValue}). Winnings: ${splitHandWinnings}`);
         } else if (splitValue === dealerValue) {
-          splitHandWinnings = player.bet; // Push
+          splitHandWinnings = betPerHand; // Push: return bet only
+          console.log(`Split hand PUSH (${splitValue} vs ${dealerValue}). Winnings: ${splitHandWinnings}`);
+        } else {
+          console.log(`Split hand LOSE (${splitValue} vs ${dealerValue}). Winnings: 0`);
         }
-        // else lose (0)
         
         totalWinnings += splitHandWinnings;
       }
       
+      console.log(`Total winnings: ${totalWinnings}`);
       const newCoins = player.coins + totalWinnings;
+      console.log(`Coins after resolution: ${newCoins}`);
+      console.log(`Net change: ${newCoins - player.coins}`);
+      
       
       // Check if player is locked out
       let isLocked = false;
