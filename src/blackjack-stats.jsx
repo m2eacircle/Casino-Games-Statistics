@@ -978,7 +978,7 @@ const BlackjackStats = () => {
   const [shoe, setShoe] = useState([]);
   const [cutCardPosition, setCutCardPosition] = useState(0);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const [gamePhase, setGamePhase] = useState('setup'); // 'setup', 'betting', 'playing', 'dealer', 'result'
+  const [gamePhase, setGamePhase] = useState('setup'); // 'setup', 'betting', 'superMatch', 'playing', 'dealer', 'result', 'switch'
   const [showStats, setShowStats] = useState(false);
   const [editingPlayers, setEditingPlayers] = useState(false);
   const [showShuffleAnimation, setShowShuffleAnimation] = useState(false);
@@ -1021,6 +1021,38 @@ const BlackjackStats = () => {
       return () => clearTimeout(timeoutId);
     }
   }, [currentPlayerIndex, players, gamePhase]);
+  
+  // AUTO-TRIGGER AI SUPER MATCH DECISION
+  useEffect(() => {
+    if (gamePhase !== 'superMatch') return;
+    
+    const currentPlayer = players[currentPlayerIndex];
+    if (!currentPlayer) return;
+    
+    // If current player is AI and not locked, make Super Match decision after delay
+    if (currentPlayer.type === 'ai' && !currentPlayer.locked) {
+      const timeoutId = setTimeout(() => {
+        handleAISuperMatchDecision();
+      }, 1500);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [currentPlayerIndex, players, gamePhase]);
+  
+  const handleAISuperMatchDecision = () => {
+    const currentPlayer = players[currentPlayerIndex];
+    if (!currentPlayer || currentPlayer.type !== 'ai' || currentPlayer.locked) return;
+    
+    // AI strategy: Always bet on Super Match if they have enough coins
+    // It's a side bet with good odds
+    if (currentPlayer.coins >= 5) {
+      console.log(`AI ${currentPlayer.name} places Super Match bet`);
+      placeSuperMatchBet();
+    } else {
+      console.log(`AI ${currentPlayer.name} skips Super Match (not enough coins)`);
+      skipSuperMatchBet();
+    }
+  };
   
   const handleAISwitchDecision = () => {
     const currentPlayer = players[currentPlayerIndex];
@@ -1369,13 +1401,91 @@ const BlackjackStats = () => {
     const betAmount = gameMode === 'switch' ? 10 : 5;
     const updatedPlayers = players.map(player => {
       if (!player.locked && player.coins >= betAmount) {
-        return { ...player, bet: betAmount, coins: player.coins - betAmount };
+        return { ...player, bet: betAmount, coins: player.coins - betAmount, superMatchBet: 0 };
       }
       return player;
     });
     setPlayers(updatedPlayers);
-    dealInitialCards(updatedPlayers);
+    
+    // In Switch mode, go to Super Match betting phase
+    if (gameMode === 'switch') {
+      setGamePhase('superMatch');
+      setCurrentPlayerIndex(0);
+    } else {
+      dealInitialCards(updatedPlayers);
+    }
   };
+  
+  // Super Match betting functions
+  const placeSuperMatchBet = () => {
+    setPlayers(prevPlayers => {
+      const updated = [...prevPlayers];
+      const player = updated[currentPlayerIndex];
+      
+      if (player.coins >= 5) {
+        player.coins -= 5;
+        player.superMatchBet = 5;
+      }
+      
+      return updated;
+    });
+    
+    moveToNextPlayerSuperMatch();
+  };
+  
+  const skipSuperMatchBet = () => {
+    // Don't place Super Match bet, just move on
+    moveToNextPlayerSuperMatch();
+  };
+  
+  const moveToNextPlayerSuperMatch = () => {
+    const nextPlayerIndex = currentPlayerIndex + 1;
+    
+    // Find next non-locked player
+    let nextIndex = nextPlayerIndex;
+    while (nextIndex < players.length && players[nextIndex].locked) {
+      nextIndex++;
+    }
+    
+    if (nextIndex >= players.length) {
+      // All players decided on Super Match, deal cards
+      setCurrentPlayerIndex(0);
+      dealInitialCards(players);
+    } else {
+      // Next player makes Super Match decision
+      setCurrentPlayerIndex(nextIndex);
+    }
+  };
+  
+  // Calculate Super Match winnings based on 4 cards
+  const calculateSuperMatchWinnings = (cards) => {
+    if (!cards || cards.length !== 4) return 0;
+    
+    // Count card values
+    const valueCounts = {};
+    cards.forEach(card => {
+      const value = card.value;
+      valueCounts[value] = (valueCounts[value] || 0) + 1;
+    });
+    
+    const counts = Object.values(valueCounts).sort((a, b) => b - a);
+    
+    // Four of a kind: 50:1
+    if (counts[0] === 4) return 50;
+    
+    // Three of a kind: 5:1
+    if (counts[0] === 3) return 5;
+    
+    // Two pairs: 7:1
+    if (counts[0] === 2 && counts[1] === 2) return 7;
+    
+    // One pair: 1:1
+    if (counts[0] === 2) return 1;
+    
+    // No match
+    return 0;
+  };
+
   
   const dealInitialCards = (currentPlayers) => {
     let currentShoe = [...shoe];
@@ -1392,13 +1502,31 @@ const BlackjackStats = () => {
         // In Switch mode, each player gets TWO hands (4 cards total)
         const updatedPlayers = currentPlayers.map(player => {
           if (gameMode === 'switch') {
+            const hand = player.locked ? [] : [newShoe.pop(), newShoe.pop()];
+            const splitHand = player.locked ? null : [newShoe.pop(), newShoe.pop()];
+            
+            // Process Super Match winnings if bet was placed
+            let superMatchWinnings = 0;
+            if (player.superMatchBet > 0 && hand.length === 2 && splitHand && splitHand.length === 2) {
+              const allFourCards = [...hand, ...splitHand];
+              const multiplier = calculateSuperMatchWinnings(allFourCards);
+              if (multiplier > 0) {
+                superMatchWinnings = player.superMatchBet + (player.superMatchBet * multiplier);
+                console.log(`${player.name} Super Match WIN! Multiplier: ${multiplier}:1, Winnings: ${superMatchWinnings}`);
+              } else {
+                console.log(`${player.name} Super Match LOSE`);
+              }
+            }
+            
             return {
               ...player,
-              hand: player.locked ? [] : [newShoe.pop(), newShoe.pop()],
-              splitHand: player.locked ? null : [newShoe.pop(), newShoe.pop()], // Always deal 2nd hand in Switch
+              hand,
+              splitHand,
               playingSplit: false,
               numSplits: 0,
-              decisions: []
+              decisions: [],
+              coins: player.coins + superMatchWinnings,
+              superMatchResult: superMatchWinnings > 0 ? `WIN ${superMatchWinnings}` : (player.superMatchBet > 0 ? 'LOSE' : null)
             };
           } else {
             return {
@@ -1435,13 +1563,31 @@ const BlackjackStats = () => {
     // In Switch mode, each player gets TWO hands (4 cards total)
     const updatedPlayers = currentPlayers.map(player => {
       if (gameMode === 'switch') {
+        const hand = player.locked ? [] : [currentShoe.pop(), currentShoe.pop()];
+        const splitHand = player.locked ? null : [currentShoe.pop(), currentShoe.pop()];
+        
+        // Process Super Match winnings if bet was placed
+        let superMatchWinnings = 0;
+        if (player.superMatchBet > 0 && hand.length === 2 && splitHand && splitHand.length === 2) {
+          const allFourCards = [...hand, ...splitHand];
+          const multiplier = calculateSuperMatchWinnings(allFourCards);
+          if (multiplier > 0) {
+            superMatchWinnings = player.superMatchBet + (player.superMatchBet * multiplier);
+            console.log(`${player.name} Super Match WIN! Multiplier: ${multiplier}:1, Winnings: ${superMatchWinnings}`);
+          } else {
+            console.log(`${player.name} Super Match LOSE`);
+          }
+        }
+        
         return {
           ...player,
-          hand: player.locked ? [] : [currentShoe.pop(), currentShoe.pop()],
-          splitHand: player.locked ? null : [currentShoe.pop(), currentShoe.pop()], // Always deal 2nd hand in Switch
+          hand,
+          splitHand,
           playingSplit: false,
           numSplits: 0,
-          decisions: []
+          decisions: [],
+          coins: player.coins + superMatchWinnings,
+          superMatchResult: superMatchWinnings > 0 ? `WIN ${superMatchWinnings}` : (player.superMatchBet > 0 ? 'LOSE' : null)
         };
       } else {
         return {
@@ -3054,6 +3200,90 @@ const BlackjackStats = () => {
             <button className="action-btn primary" onClick={placeBets}>
               Place Bets ({gameMode === 'switch' ? '10' : '5'} coins)
             </button>
+          )}
+          
+          {gamePhase === 'superMatch' && (
+            <div className="super-match-section" style={{ textAlign: 'center' }}>
+              <h3 style={{ marginBottom: '15px', color: '#fff', fontSize: '1.8rem' }}>
+                💎 Super Match Side Bet
+              </h3>
+              <p style={{ color: '#ffd700', marginBottom: '20px', fontSize: '1.1rem' }}>
+                {players[currentPlayerIndex]?.name} - Place Super Match bet?
+              </p>
+              
+              <div style={{
+                background: 'rgba(255,255,255,0.1)',
+                padding: '20px',
+                borderRadius: '15px',
+                marginBottom: '25px',
+                maxWidth: '500px',
+                margin: '0 auto 25px auto'
+              }}>
+                <div style={{ color: '#fff', fontSize: '1rem', lineHeight: '2', textAlign: 'left' }}>
+                  <div><strong>Bet:</strong> 5 coins</div>
+                  <div style={{ marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '10px' }}>
+                    <strong>Payouts:</strong>
+                  </div>
+                  <div style={{ marginLeft: '20px' }}>
+                    <div>One pair: 1:1 (+5 coins)</div>
+                    <div>Three of a kind: 5:1 (+25 coins)</div>
+                    <div>Two pairs: 7:1 (+35 coins)</div>
+                    <div>Four of a kind: 50:1 (+250 coins)</div>
+                  </div>
+                </div>
+              </div>
+              
+              {players[currentPlayerIndex]?.type === 'ai' && (
+                <div style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  padding: '15px 30px',
+                  borderRadius: '10px',
+                  marginBottom: '20px',
+                  fontSize: '1.1rem',
+                  color: '#ffd700'
+                }}>
+                  🤖 AI Deciding...
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+                <button 
+                  className="action-btn primary" 
+                  onClick={placeSuperMatchBet}
+                  disabled={players[currentPlayerIndex]?.type === 'ai' || players[currentPlayerIndex]?.coins < 5}
+                  style={{
+                    background: players[currentPlayerIndex]?.type === 'ai' || players[currentPlayerIndex]?.coins < 5
+                      ? 'rgba(128,128,128,0.3)' 
+                      : 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+                    color: players[currentPlayerIndex]?.type === 'ai' || players[currentPlayerIndex]?.coins < 5 ? '#666' : '#000',
+                    fontSize: '1.2rem',
+                    padding: '15px 40px',
+                    fontWeight: 'bold',
+                    cursor: players[currentPlayerIndex]?.type === 'ai' || players[currentPlayerIndex]?.coins < 5 ? 'not-allowed' : 'pointer',
+                    opacity: players[currentPlayerIndex]?.type === 'ai' || players[currentPlayerIndex]?.coins < 5 ? 0.5 : 1
+                  }}
+                >
+                  💎 Bet 5 Coins
+                </button>
+                <button 
+                  className="action-btn" 
+                  onClick={skipSuperMatchBet}
+                  disabled={players[currentPlayerIndex]?.type === 'ai'}
+                  style={{
+                    background: players[currentPlayerIndex]?.type === 'ai' 
+                      ? 'rgba(128,128,128,0.3)' 
+                      : 'rgba(255,255,255,0.2)',
+                    fontSize: '1.2rem',
+                    padding: '15px 40px',
+                    cursor: players[currentPlayerIndex]?.type === 'ai' ? 'not-allowed' : 'pointer',
+                    opacity: players[currentPlayerIndex]?.type === 'ai' ? 0.5 : 1,
+                    color: players[currentPlayerIndex]?.type === 'ai' ? '#666' : '#fff'
+                  }}
+                >
+                  Skip
+                </button>
+              </div>
+            </div>
           )}
           
           {gamePhase === 'switch' && (
