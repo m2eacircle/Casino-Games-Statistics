@@ -3093,6 +3093,7 @@ const BlackjackStats = () => {
                               💎 {player.superMatchResult}
                             </span>
                           )}
+                          {renderBadge(hand.result, hand.coins, null)}
                         </div>
                       );
                     }
