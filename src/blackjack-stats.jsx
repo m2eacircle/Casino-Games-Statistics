@@ -2988,6 +2988,12 @@ const BlackjackStats = () => {
                 <h4>{player.name}</h4>
                 <div className="player-stats" style={{ flexWrap: 'wrap' }}>
                   <span>🪙 {player.coins}</span>
+                  {/* Show Super Match bet FIRST if exists */}
+                  {gameMode === 'switch' && player.superMatchBet > 0 && (
+                    <span className="bet-amount" style={{ background: '#ffd700', color: '#000', order: -1, width: '100%' }}>
+                      💎 Super Match: {player.superMatchBet}
+                    </span>
+                  )}
                   {player.bet > 0 && (
                     <span className="bet-amount">
                       {player.splitHand ? (
@@ -2996,12 +3002,6 @@ const BlackjackStats = () => {
                       ) : (
                         <>Bet: {player.bet}</>
                       )}
-                    </span>
-                  )}
-                  {/* Show Super Match bet if exists */}
-                  {gameMode === 'switch' && player.superMatchBet > 0 && (
-                    <span className="bet-amount" style={{ background: '#ffd700', color: '#000' }}>
-                      💎 Super Match: {player.superMatchBet}
                     </span>
                   )}
                   {/* Show WIN/LOSE/PUSH badge during result phase */}
@@ -3052,9 +3052,7 @@ const BlackjackStats = () => {
                       
                       return (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px', width: '100%' }}>
-                          {renderBadge(hand1.result, hand1.coins, 'H1')}
-                          {renderBadge(hand2.result, hand2.coins, 'H2')}
-                          {/* Show Super Match result if exists */}
+                          {/* Show Super Match result FIRST if exists */}
                           {gameMode === 'switch' && player.superMatchResult && (
                             <span style={{
                               padding: '4px 10px',
@@ -3063,11 +3061,15 @@ const BlackjackStats = () => {
                               fontSize: '0.8rem',
                               background: player.superMatchResult.startsWith('WIN') ? '#ffd700' : '#666',
                               color: player.superMatchResult.startsWith('WIN') ? '#000' : '#fff',
-                              display: 'inline-block'
+                              display: 'inline-block',
+                              width: '100%',
+                              textAlign: 'center'
                             }}>
                               💎 {player.superMatchResult}
                             </span>
                           )}
+                          {renderBadge(hand1.result, hand1.coins, 'H1')}
+                          {renderBadge(hand2.result, hand2.coins, 'H2')}
                         </div>
                       );
                     } else {
@@ -3075,8 +3077,7 @@ const BlackjackStats = () => {
                       const hand = calculateHandWinnings(player.hand);
                       return (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px', width: '100%' }}>
-                          {renderBadge(hand.result, hand.coins, null)}
-                          {/* Show Super Match result if exists */}
+                          {/* Show Super Match result FIRST if exists */}
                           {gameMode === 'switch' && player.superMatchResult && (
                             <span style={{
                               padding: '4px 10px',
@@ -3085,7 +3086,9 @@ const BlackjackStats = () => {
                               fontSize: '0.8rem',
                               background: player.superMatchResult.startsWith('WIN') ? '#ffd700' : '#666',
                               color: player.superMatchResult.startsWith('WIN') ? '#000' : '#fff',
-                              display: 'inline-block'
+                              display: 'inline-block',
+                              width: '100%',
+                              textAlign: 'center'
                             }}>
                               💎 {player.superMatchResult}
                             </span>
@@ -3247,16 +3250,90 @@ const BlackjackStats = () => {
                   )}
                 </div>
               )}
+              
+              {/* Betting Phase - Show for human player */}
+              {player.type === 'human' && gamePhase === 'betting' && (
+                <div style={{ marginTop: '15px' }}>
+                  <button className="action-btn primary" onClick={placeBets} style={{ width: '100%' }}>
+                    Place Bets ({gameMode === 'switch' ? '10' : '5'} coins)
+                  </button>
+                </div>
+              )}
+              
+              {/* Switch Phase - Show for human player when it's their turn */}
+              {player.type === 'human' && idx === currentPlayerIndex && gamePhase === 'switch' && (
+                <div className="switch-section" style={{ marginTop: '15px' }}>
+                  <h4 style={{ textAlign: 'center', marginBottom: '10px', color: '#ffd700' }}>
+                    Switch Cards?
+                  </h4>
+                  
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    marginBottom: '15px',
+                    fontSize: '0.9rem'
+                  }}>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{ marginBottom: '5px', fontWeight: 'bold' }}>Current</div>
+                      <div>H1: {player.hand?.map(c => c.display).join(' ')}</div>
+                      <div style={{ marginTop: '3px' }}>
+                        Total: {calculateHandValue(player.hand || [])}
+                      </div>
+                      <div style={{ marginTop: '8px' }}>H2: {player.splitHand?.map(c => c.display).join(' ')}</div>
+                      <div style={{ marginTop: '3px' }}>
+                        Total: {calculateHandValue(player.splitHand || [])}
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', fontSize: '1.5rem' }}>⇄</div>
+                    
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{ marginBottom: '5px', fontWeight: 'bold' }}>After Switch</div>
+                      <div>H1: {player.hand?.[0]?.display} {player.splitHand?.[1]?.display}</div>
+                      <div style={{ marginTop: '3px' }}>
+                        Total: {player.hand && player.splitHand ? 
+                          calculateHandValue([player.hand[0], player.splitHand[1]]) : 0}
+                      </div>
+                      <div style={{ marginTop: '8px' }}>H2: {player.splitHand?.[0]?.display} {player.hand?.[1]?.display}</div>
+                      <div style={{ marginTop: '3px' }}>
+                        Total: {player.hand && player.splitHand ?
+                          calculateHandValue([player.splitHand[0], player.hand[1]]) : 0}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      className="action-btn primary"
+                      onClick={executeSwitch}
+                      style={{
+                        flex: 1,
+                        background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+                        color: '#000',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Switch Cards
+                    </button>
+                    <button 
+                      className="action-btn"
+                      onClick={keepHands}
+                      style={{ flex: 1 }}
+                    >
+                      Keep As Dealt
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
         
-        {/* Action Buttons */}
+        {/* Global Action Buttons (Super Match for all players, Result buttons) */}
         <div className="actions-section">
           {gamePhase === 'betting' && (
-            <button className="action-btn primary" onClick={placeBets}>
-              Place Bets ({gameMode === 'switch' ? '10' : '5'} coins)
-            </button>
+            <div style={{ display: 'none' }}></div>
           )}
           
           {gamePhase === 'superMatch' && (
@@ -3343,104 +3420,19 @@ const BlackjackStats = () => {
             </div>
           )}
           
-          {gamePhase === 'switch' && (
+          {gamePhase === 'switch' && players[currentPlayerIndex]?.type === 'ai' && (
             <div className="switch-section">
-              <h3 style={{ textAlign: 'center', marginBottom: '20px', color: '#fff' }}>
-                {players[currentPlayerIndex]?.name} - Switch Cards?
-              </h3>
-              
-              <div className="switch-preview" style={{
-                display: 'flex',
-                gap: '30px',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                marginBottom: '30px'
+              <div style={{
+                background: 'rgba(255,255,255,0.1)',
+                padding: '15px 30px',
+                borderRadius: '10px',
+                fontSize: '1.1rem',
+                color: '#ffd700',
+                textAlign: 'center'
               }}>
-                {/* Current Hands */}
-                <div style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  padding: '20px',
-                  borderRadius: '15px',
-                  minWidth: '300px'
-                }}>
-                  <h4 style={{ color: '#fff', marginBottom: '15px', textAlign: 'center' }}>Current Hands</h4>
-                  <div style={{ color: '#fff', fontSize: '1.1rem', lineHeight: '2' }}>
-                    <div><strong>Hand 1:</strong> {players[currentPlayerIndex]?.hand?.map(c => c.display).join(' ')} = {calculateHandValue(players[currentPlayerIndex]?.hand || [])}</div>
-                    <div><strong>Hand 2:</strong> {players[currentPlayerIndex]?.splitHand?.map(c => c.display).join(' ')} = {calculateHandValue(players[currentPlayerIndex]?.splitHand || [])}</div>
-                  </div>
-                </div>
-                
-                <div style={{ fontSize: '2rem', color: '#ffd700' }}>⇄</div>
-                
-                {/* After Switch */}
-                <div style={{
-                  background: 'rgba(255,215,0,0.2)',
-                  padding: '20px',
-                  borderRadius: '15px',
-                  minWidth: '300px',
-                  border: '2px solid #ffd700'
-                }}>
-                  <h4 style={{ color: '#ffd700', marginBottom: '15px', textAlign: 'center' }}>After Switch</h4>
-                  <div style={{ color: '#fff', fontSize: '1.1rem', lineHeight: '2' }}>
-                    <div><strong>Hand 1:</strong> {players[currentPlayerIndex]?.hand?.[0]?.display} {players[currentPlayerIndex]?.splitHand?.[1]?.display} = {calculateHandValue([players[currentPlayerIndex]?.hand?.[0], players[currentPlayerIndex]?.splitHand?.[1]].filter(Boolean))}</div>
-                    <div><strong>Hand 2:</strong> {players[currentPlayerIndex]?.splitHand?.[0]?.display} {players[currentPlayerIndex]?.hand?.[1]?.display} = {calculateHandValue([players[currentPlayerIndex]?.splitHand?.[0], players[currentPlayerIndex]?.hand?.[1]].filter(Boolean))}</div>
-                  </div>
-                </div>
+                🤖 {players[currentPlayerIndex]?.name} is thinking...
               </div>
-              
-              <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-                {players[currentPlayerIndex]?.type === 'ai' && (
-                  <div style={{
-                    background: 'rgba(255,255,255,0.1)',
-                    padding: '15px 30px',
-                    borderRadius: '10px',
-                    marginBottom: '10px',
-                    fontSize: '1.1rem',
-                    color: '#ffd700'
-                  }}>
-                    🤖 AI Thinking...
-                  </div>
-                )}
-                
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  <button 
-                    className="action-btn" 
-                    onClick={executeSwitch}
-                    disabled={players[currentPlayerIndex]?.type === 'ai'}
-                    style={{
-                      background: players[currentPlayerIndex]?.type === 'ai' 
-                        ? 'rgba(128,128,128,0.3)' 
-                        : 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
-                      color: players[currentPlayerIndex]?.type === 'ai' ? '#666' : '#000',
-                      fontSize: '1.2rem',
-                      padding: '15px 40px',
-                      fontWeight: 'bold',
-                      cursor: players[currentPlayerIndex]?.type === 'ai' ? 'not-allowed' : 'pointer',
-                      opacity: players[currentPlayerIndex]?.type === 'ai' ? 0.5 : 1
-                    }}
-                  >
-                    🔄 Switch Cards
-                  </button>
-                  <button 
-                    className="action-btn" 
-                    onClick={keepHands}
-                    disabled={players[currentPlayerIndex]?.type === 'ai'}
-                    style={{
-                      background: players[currentPlayerIndex]?.type === 'ai' 
-                        ? 'rgba(128,128,128,0.3)' 
-                        : 'rgba(255,255,255,0.2)',
-                      fontSize: '1.2rem',
-                      padding: '15px 40px',
-                      cursor: players[currentPlayerIndex]?.type === 'ai' ? 'not-allowed' : 'pointer',
-                      opacity: players[currentPlayerIndex]?.type === 'ai' ? 0.5 : 1,
-                      color: players[currentPlayerIndex]?.type === 'ai' ? '#666' : '#fff'
-                    }}
-                  >
-                    Keep As Dealt
-                  </button>
-                </div>
-              </div>
+            </div>
             </div>
           )}
           
