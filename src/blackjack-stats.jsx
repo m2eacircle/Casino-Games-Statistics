@@ -1526,6 +1526,8 @@ const BlackjackStats = () => {
               playingSplit: false,
               numSplits: 0,
               decisions: [],
+              mainHandBet: 5,  // Initialize to 5 for each hand in Switch mode
+              splitHandBet: 5, // Initialize to 5 for each hand in Switch mode
               coins: player.coins + superMatchWinnings,
               superMatchResult: superMatchWinnings > 0 ? `WIN ${superMatchWinnings}` : (player.superMatchBet > 0 ? 'LOSE' : null)
             };
@@ -1587,6 +1589,8 @@ const BlackjackStats = () => {
           playingSplit: false,
           numSplits: 0,
           decisions: [],
+          mainHandBet: 5,  // Initialize to 5 for each hand in Switch mode
+          splitHandBet: 5, // Initialize to 5 for each hand in Switch mode
           coins: player.coins + superMatchWinnings,
           superMatchResult: superMatchWinnings > 0 ? `WIN ${superMatchWinnings}` : (player.superMatchBet > 0 ? 'LOSE' : null)
         };
