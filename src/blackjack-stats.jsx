@@ -2406,7 +2406,7 @@ const BlackjackStats = () => {
               className="mode-card"
               onClick={() => setGameMode('baccarat')}
             >
-              <div className="mode-icon">🎴</div>
+              <div className="mode-icon">🂡</div>
               <h3>Baccarat</h3>
               <p>Bet on Player or Banker</p>
             </button>
@@ -2572,7 +2572,7 @@ const BlackjackStats = () => {
           
           <div className="setup-screen">
             <div className="header">
-              <h1 className="main-title">🎴 Baccarat</h1>
+              <h1 className="main-title">🂡 Baccarat</h1>
               <a href="https://www.m2eacircle.com/" className="circle-link">
                 <Home size={24} />
                 <span>m2ea Circle</span>
@@ -2586,7 +2586,7 @@ const BlackjackStats = () => {
                 borderRadius: '20px',
                 marginBottom: '30px'
               }}>
-                <div style={{ fontSize: '6rem', marginBottom: '30px' }}>🎴</div>
+                <div style={{ fontSize: '6rem', marginBottom: '30px' }}>🂡</div>
                 <h2 style={{ color: '#ffd700', fontSize: '2.5rem', marginBottom: '20px' }}>
                   Coming Soon!
                 </h2>
