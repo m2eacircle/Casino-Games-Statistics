@@ -1755,13 +1755,17 @@ const BlackjackStats = () => {
       }
     } else if (action === 'split') {
       console.log('SPLIT clicked! Player:', player);
-      console.log('Can split?', player.coins >= 5, player.hand.length === 2, player.hand[0].value === player.hand[1].value, player.numSplits < 2);
+      console.log('Can split?', player.coins >= 5, player.hand.length === 2, player.hand[0].value === player.hand[1].value, player.numSplits === 0);
       
-      if (player.coins >= 5 && player.hand.length === 2 && 
-          player.hand[0].value === player.hand[1].value && player.numSplits < 2) {
+      // Only allow ONE split (numSplits === 0 means no splits yet)
+      if (player.coins >= 5 && 
+          player.hand.length === 2 && 
+          player.hand[0].value === player.hand[1].value && 
+          player.numSplits === 0 &&      // Changed from < 2 to === 0
+          !player.splitHand) {            // Ensure no split hand exists
         // Deduct additional bet for split hand
         updatedPlayers[currentPlayerIndex].coins -= 5;
-        updatedPlayers[currentPlayerIndex].numSplits += 1; // Increment split counter
+        updatedPlayers[currentPlayerIndex].numSplits = 1; // Set to 1 (one split done)
         
         // Initialize separate bets for each hand (both start at 5)
         updatedPlayers[currentPlayerIndex].mainHandBet = 5;
@@ -1771,7 +1775,7 @@ const BlackjackStats = () => {
         const card1 = player.hand[0];
         const card2 = player.hand[1];
         
-        console.log('Splitting:', card1, 'and', card2, '- Split #', player.numSplits + 1);
+        console.log('Splitting:', card1, 'and', card2);
         
         // First hand gets one new card
         updatedPlayers[currentPlayerIndex].hand = [card1, currentShoe.pop()];
@@ -2961,8 +2965,19 @@ const BlackjackStats = () => {
     : (currentPlayer ? currentPlayer.hand : []);
   const canHit = gamePhase === 'playing' && currentPlayer && currentPlayer.type === 'human' && !currentPlayer.locked;
   const canDouble = canHit && activeHand.length === 2 && currentPlayer.coins >= 5;
-  // In Switch mode, disable split to avoid structural issues (would need array of hands)
-  const canSplit = canHit && gameMode !== 'switch' && currentPlayer.numSplits < 2 && currentPlayer.hand.length === 2 && 
+  // Split rules:
+  // 1. Only in Regular mode (not Switch)
+  // 2. Only if no splits have been done yet (numSplits === 0)
+  // 3. Only on the ACTIVE hand (not already split)
+  // 4. Only if active hand has exactly 2 cards (first action)
+  // 5. Only if both cards have same value
+  // 6. Only if player has coins
+  const canSplit = canHit && 
+                   gameMode !== 'switch' && 
+                   currentPlayer.numSplits === 0 &&  // Changed from < 2 to === 0
+                   !currentPlayer.splitHand &&        // No split yet
+                   activeHand.length === 2 &&         // First action on this hand
+                   currentPlayer.hand.length === 2 && // Main hand has 2 cards
                    currentPlayer.hand[0].value === currentPlayer.hand[1].value && 
                    currentPlayer.coins >= 5;
   
