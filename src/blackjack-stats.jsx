@@ -2750,7 +2750,7 @@ const BlackjackStats = () => {
             resetGameState();
             setGameMode(null);
           }}>
-            ← Back to Mode Selection
+            ← Back to Game Selection
           </button>
         </div>
         
