@@ -2377,7 +2377,7 @@ const BlackjackStats = () => {
         <div className="game-select-screen">
         <div className="header">
           <h1 className="main-title">Casino Games Statistics</h1>
-          <a href="https://www.m2eacircle.com/" className="circle-link">
+          <a href="https://www.m2eacircle.com/entertainment/index.html" target="_blank" className="circle-link">
             <Home size={24} />
             <span>m2ea Circle</span>
           </a>
