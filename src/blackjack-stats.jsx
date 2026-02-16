@@ -2611,7 +2611,7 @@ const BlackjackStats = () => {
           <div className="setup-screen">
             <div className="header">
               <h1 className="main-title">🂡 Baccarat</h1>
-              <a href="https://www.m2eacircle.com/" className="circle-link">
+              <a href="https://www.m2eacircle.com/entertainment/index.html" target="_blank" className="circle-link">
                 <Home size={24} />
                 <span>m2ea Circle</span>
               </a>
@@ -2675,7 +2675,7 @@ const BlackjackStats = () => {
         <div className="setup-screen">
         <div className="header">
           <h1 className="main-title">Setup Game</h1>
-          <a href="https://www.m2eacircle.com/" className="circle-link">
+          <a href="https://www.m2eacircle.com/entertainment/index.html" target="_blank" className="circle-link">
             <Home size={24} />
             <span>m2ea Circle</span>
           </a>
@@ -3063,7 +3063,7 @@ const BlackjackStats = () => {
           <h1>Casino Games Statistics</h1>
           <span className="mode-badge">{gameMode.toUpperCase()}</span>
         </div>
-        <a href="https://www.m2eacircle.com/" className="circle-link">
+        <a href="https://www.m2eacircle.com/entertainment/index.html" target="_blank" className="circle-link">
           <Home size={20} />
           <span>m2ea Circle</span>
         </a>
