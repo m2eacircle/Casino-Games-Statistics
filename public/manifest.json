@@ -1,0 +1,19 @@
+{
+  "name": "Blackjack Statistics",
+  "short_name": "Blackjack Stats",
+  "description": "Educational blackjack app with statistical odds display for learning purposes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e3c72",
+  "theme_color": "#1e3c72",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "games", "entertainment"]
+}
