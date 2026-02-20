@@ -2442,11 +2442,12 @@ const BlackjackStats = () => {
             
             <button 
               className="mode-card"
-              onClick={() => setGameMode('baccarat')}
+              onClick={null}
+              style={{ cursor: 'default', opacity: 0.7 }}
             >
               <div className="mode-icon">🂡</div>
               <h3>Baccarat</h3>
-              <p>Bet on Player or Banker</p>
+              <p>Coming soon!</p>
             </button>
           </div>
         </div>
